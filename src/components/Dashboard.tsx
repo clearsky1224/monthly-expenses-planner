@@ -151,9 +151,9 @@ export default function Dashboard() {
               const isNearLimit = percentage > 80 && percentage <= 100;
 
               return (
-                <div key={budget.categoryId} className="space-y-2">
+                <div key={budget.id} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700">{budget.categoryName}</span>
+                    <span className="font-medium text-gray-700">{budget.category}</span>
                     <span className={`${isOverBudget ? 'text-red-600' : isNearLimit ? 'text-yellow-600' : 'text-gray-600'}`}>
                       ${budget.spent.toFixed(0)} / ${budget.limit.toFixed(0)}
                     </span>
@@ -176,20 +176,23 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl p-4 shadow-sm">
           <h4 className="font-semibold text-gray-900 mb-3">Top Spending Categories</h4>
           <div className="space-y-2">
-            {categoryBreakdown.slice(0, 5).map((category) => (
-              <div key={category.categoryId} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: category.color }}
-                  ></div>
-                  <span className="text-sm text-gray-700">{category.name}</span>
+            {categoryBreakdown.slice(0, 5).map((category) => {
+              const categoryInfo = categories.find(c => c.id === category.category);
+              return (
+                <div key={category.category} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: categoryInfo?.color || '#gray' }}
+                    ></div>
+                    <span className="text-sm text-gray-700">{categoryInfo?.name || category.category}</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">
+                    ${category.amount.toFixed(0)}
+                  </span>
                 </div>
-                <span className="text-sm font-medium text-gray-900">
-                  ${category.amount.toFixed(0)}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
