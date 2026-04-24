@@ -141,13 +141,13 @@ export default function GoogleSignIn({ onAuthChange }: GoogleSignInProps) {
     );
   }
 
-  if (isAuthenticated && userProfile) {
+  if (isAuthenticated) {
     return (
       <div className="space-y-6">
         {/* User Profile Card */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-green-500" />
               Google Account Connected
             </h3>
@@ -158,22 +158,24 @@ export default function GoogleSignIn({ onAuthChange }: GoogleSignInProps) {
           </div>
 
           {/* User Profile */}
-          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg mb-4">
-            {userProfile.picture && (
-              <img
-                src={userProfile.picture}
-                alt={userProfile.name}
-                className="w-12 h-12 rounded-full"
-              />
-            )}
-            <div className="flex-1">
-              <p className="font-medium text-gray-900">{userProfile.name}</p>
-              <p className="text-sm text-gray-500 flex items-center gap-1">
-                <Mail className="w-3 h-3" />
-                {userProfile.email}
-              </p>
+          {userProfile && (
+            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg mb-4">
+              {userProfile.picture && (
+                <img
+                  src={userProfile.picture}
+                  alt={userProfile.name}
+                  className="w-12 h-12 rounded-full"
+                />
+              )}
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">{userProfile.name}</p>
+                <p className="text-sm text-gray-600 flex items-center gap-1">
+                  <Mail className="w-3 h-3" />
+                  {userProfile.email}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Permissions Info */}
           <div className="mb-4 p-3 bg-blue-50 rounded-lg">
