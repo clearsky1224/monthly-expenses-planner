@@ -12,7 +12,6 @@ import {
   Loader2
 } from 'lucide-react';
 import SpreadsheetSelector from './SpreadsheetSelector';
-import DebugEnv from './DebugEnv';
 
 interface GoogleSignInProps {
   onAuthChange?: (isAuthenticated: boolean, userProfile?: any) => void;
@@ -214,9 +213,6 @@ export default function GoogleSignIn({ onAuthChange }: GoogleSignInProps) {
 
   return (
     <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 p-6">
-      {/* Debug Environment Variables */}
-      <DebugEnv />
-      
       <div className="text-center mb-6">
         <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <svg className="w-8 h-8" viewBox="0 0 24 24">

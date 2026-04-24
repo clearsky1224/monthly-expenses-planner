@@ -17,7 +17,6 @@ import { Transaction, DashboardData, MonthlySummary, Category } from '@/types';
 import { DataManager } from '@/lib/data';
 import TransactionForm from './TransactionForm';
 import SyncControls from './SyncControls';
-import GoogleSignIn from './GoogleSignIn';
 
 type TabType = 'overview' | 'add' | 'auth' | 'recent';
 
@@ -218,7 +217,6 @@ export default function Dashboard() {
   const renderAuthTab = () => {
     return (
       <div className="space-y-4">
-        <GoogleSignIn />
         <SyncControls 
           selectedMonth={selectedMonth}
           onSyncComplete={loadData}
