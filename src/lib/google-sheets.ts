@@ -46,49 +46,87 @@ export class GoogleSheetsManager {
   }
 
   async initializeGapi() {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve, reject) => {
       if (typeof window === 'undefined') {
         resolve();
         return;
       }
 
+      // Check if API_KEY is available
+      if (!API_KEY) {
+        reject(new Error('Google API Key is missing. Please check your environment variables.'));
+        return;
+      }
+
       const script = document.createElement('script');
       script.src = 'https://apis.google.com/js/api.js';
+      script.onerror = () => {
+        reject(new Error('Failed to load Google APIs script. Please check your internet connection.'));
+      };
       script.onload = () => {
-        window.gapi.load('client', async () => {
-          await window.gapi.client.init({
-            apiKey: API_KEY,
-            discoveryDocs: [DISCOVERY_DOC],
+        try {
+          window.gapi.load('client', async () => {
+            try {
+              await window.gapi.client.init({
+                apiKey: API_KEY,
+                discoveryDocs: [DISCOVERY_DOC],
+              });
+              this.gapiInited = true;
+              resolve();
+            } catch (error) {
+              reject(new Error(`Failed to initialize Google client: ${error instanceof Error ? error.message : 'Unknown error'}`));
+            }
           });
-          this.gapiInited = true;
-          resolve();
-        });
+        } catch (error) {
+          reject(new Error(`Failed to load Google client: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        }
       };
       document.body.appendChild(script);
     });
   }
 
   async initializeGis() {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve, reject) => {
       if (typeof window === 'undefined') {
         resolve();
         return;
       }
 
+      // Check if CLIENT_ID is available
+      if (!CLIENT_ID) {
+        reject(new Error('Google Client ID is missing. Please check your environment variables.'));
+        return;
+      }
+
       const script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client';
+      script.onerror = () => {
+        reject(new Error('Failed to load Google Identity Services script. Please check your internet connection.'));
+      };
       script.onload = () => {
-        this.tokenClient = window.google.accounts.oauth2.initTokenClient({
-          client_id: CLIENT_ID,
-          scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
-          callback: (tokenResponse: TokenResponse) => {
-            if (tokenResponse && tokenResponse.access_token) {
-              this.tokenObject = tokenResponse;
-            }
-          },
-        });
-        this.gisInited = true;
-        resolve();
+        try {
+          this.tokenClient = window.google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
+            callback: (tokenResponse: TokenResponse) => {
+              if (tokenResponse && tokenResponse.access_token) {
+                this.tokenObject = tokenResponse;
+              }
+            },
+            error_callback: (error: any) => {
+              console.error('Google token client error:', error);
+              if (error.type === 'popup_blocked' || error.message?.includes('popup')) {
+                throw new Error('Popup was blocked by your browser. Please allow popups for this site and try again.');
+              }
+            },
+            prompt: 'select_account',
+            include_granted_scopes: true,
+          });
+          this.gisInited = true;
+          resolve();
+        } catch (error) {
+          reject(new Error(`Failed to initialize Google Identity Services: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        }
       };
       document.body.appendChild(script);
     });
@@ -100,6 +138,11 @@ export class GoogleSheetsManager {
     }
 
     return new Promise((resolve, reject) => {
+      // Store original callbacks
+      const originalCallback = this.tokenClient.callback;
+      const originalErrorCallback = this.tokenClient.error_callback;
+
+      // Set temporary callbacks for this sign-in attempt
       this.tokenClient.callback = async (tokenResponse: TokenResponse) => {
         try {
           if (tokenResponse && tokenResponse.access_token) {
@@ -116,28 +159,62 @@ export class GoogleSheetsManager {
           } else {
             const error = tokenResponse.error || 'Failed to get access token';
             this.authCallbacks.forEach(callback => callback(false, error));
-            this.authCallbacks = [];
             reject(new Error(error));
           }
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
-          this.authCallbacks.forEach(callback => callback(false, errorMessage));
-          this.authCallbacks = [];
-          reject(new Error(errorMessage));
+          reject(error);
+        } finally {
+          // Restore original callbacks
+          this.tokenClient.callback = originalCallback;
+          this.tokenClient.error_callback = originalErrorCallback;
         }
       };
 
-      if (this.tokenObject && this.tokenObject.access_token) {
-        // Token already exists, validate it
+      this.tokenClient.error_callback = (error: any) => {
+        console.error('Google token client error:', error);
+        let errorMessage = 'Authentication failed';
+        
+        if (error.type === 'popup_blocked' || error.message?.includes('popup')) {
+          errorMessage = 'Popup was blocked by your browser. Please allow popups for this site and try again.';
+        } else if (error.message) {
+          errorMessage = `Authentication failed: ${error.message}`;
+        }
+        
+        reject(new Error(errorMessage));
+        
+        // Restore original callbacks
+        this.tokenClient.callback = originalCallback;
+        this.tokenClient.error_callback = originalErrorCallback;
+      };
+
+      // Check if we already have a valid token
+      if (this.tokenObject) {
         this.validateToken().then(isValid => {
           if (isValid) {
             resolve(true);
+            // Restore original callbacks
+            this.tokenClient.callback = originalCallback;
+            this.tokenClient.error_callback = originalErrorCallback;
           } else {
-            this.tokenClient.requestAccessToken();
+            try {
+              this.tokenClient.requestAccessToken();
+            } catch (error) {
+              reject(new Error('Failed to request access token. Please ensure popups are allowed for this site.'));
+              // Restore original callbacks
+              this.tokenClient.callback = originalCallback;
+              this.tokenClient.error_callback = originalErrorCallback;
+            }
           }
         }).catch(reject);
       } else {
-        this.tokenClient.requestAccessToken();
+        try {
+          this.tokenClient.requestAccessToken();
+        } catch (error) {
+          reject(new Error('Failed to request access token. Please ensure popups are allowed for this site.'));
+          // Restore original callbacks
+          this.tokenClient.callback = originalCallback;
+          this.tokenClient.error_callback = originalErrorCallback;
+        }
       }
     });
   }
@@ -215,9 +292,17 @@ export class GoogleSheetsManager {
 
   async initializeAuth(): Promise<void> {
     try {
-      await Promise.all([
-        this.initializeGapi(),
-        this.initializeGis()
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Authentication initialization timed out after 10 seconds')), 10000);
+      });
+
+      await Promise.race([
+        Promise.all([
+          this.initializeGapi(),
+          this.initializeGis()
+        ]),
+        timeoutPromise
       ]);
       
       // Try to restore previous session
@@ -231,7 +316,8 @@ export class GoogleSheetsManager {
       }
     } catch (error) {
       console.error('Error initializing authentication:', error);
-      throw new Error('Failed to initialize Google authentication');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to initialize Google authentication';
+      throw new Error(errorMessage);
     }
   }
 

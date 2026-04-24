@@ -12,6 +12,7 @@ import {
   Loader2
 } from 'lucide-react';
 import SpreadsheetSelector from './SpreadsheetSelector';
+import DebugEnv from './DebugEnv';
 
 interface GoogleSignInProps {
   onAuthChange?: (isAuthenticated: boolean, userProfile?: any) => void;
@@ -33,6 +34,7 @@ export default function GoogleSignIn({ onAuthChange }: GoogleSignInProps) {
   const initializeAuth = async () => {
     try {
       setIsInitializing(true);
+      setError(null);
       await sheetsManager.initializeAuth();
       
       const authenticated = sheetsManager.isAuthenticated();
@@ -46,7 +48,20 @@ export default function GoogleSignIn({ onAuthChange }: GoogleSignInProps) {
       }
     } catch (err) {
       console.error('Error initializing auth:', err);
-      setError('Failed to initialize Google authentication');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to initialize Google authentication';
+      
+      // Provide more user-friendly error messages
+      if (errorMessage.includes('API Key is missing')) {
+        setError('Google API Key is missing. Please check your environment configuration.');
+      } else if (errorMessage.includes('Client ID is missing')) {
+        setError('Google Client ID is missing. Please check your environment configuration.');
+      } else if (errorMessage.includes('timed out')) {
+        setError('Authentication initialization timed out. Please refresh the page and try again.');
+      } else if (errorMessage.includes('Failed to load')) {
+        setError('Unable to load Google services. Please check your internet connection and try again.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsInitializing(false);
     }
@@ -82,7 +97,18 @@ export default function GoogleSignIn({ onAuthChange }: GoogleSignInProps) {
       await sheetsManager.signIn();
     } catch (err) {
       setIsLoading(false);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';
+      let errorMessage = 'Failed to sign in';
+      
+      if (err instanceof Error) {
+        if (err.message.includes('popup was blocked')) {
+          errorMessage = '🚫 Popup was blocked by your browser. Please allow popups for this site and try again.';
+        } else if (err.message.includes('ensure popups are allowed')) {
+          errorMessage = '🚫 Please allow popups for this site in your browser settings and try again.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
       setError(errorMessage);
     }
   };
@@ -109,9 +135,9 @@ export default function GoogleSignIn({ onAuthChange }: GoogleSignInProps) {
 
   if (isInitializing) {
     return (
-      <div className="flex items-center justify-center p-6">
+      <div className="flex flex-col items-center justify-center p-6 space-y-4">
         <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-        <span className="ml-2 text-gray-600">Initializing Google authentication...</span>
+        <span className="text-gray-600">Initializing Google authentication...</span>
       </div>
     );
   }
@@ -187,9 +213,12 @@ export default function GoogleSignIn({ onAuthChange }: GoogleSignInProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 p-6">
+      {/* Debug Environment Variables */}
+      <DebugEnv />
+      
       <div className="text-center mb-6">
-        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <svg className="w-8 h-8" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -197,18 +226,28 @@ export default function GoogleSignIn({ onAuthChange }: GoogleSignInProps) {
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
           Connect to Google Sheets
         </h3>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
           Securely connect your Google account to sync your expense data with Google Sheets
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-red-500" />
-          <span className="text-sm text-red-700">{error}</span>
+        <div className="mb-4 p-4 bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-900/20 dark:to-red-900/20 border border-rose-200/50 dark:border-rose-700/50 rounded-2xl">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <span className="text-sm text-rose-800 dark:text-rose-200 font-medium">{error}</span>
+              <button
+                onClick={initializeAuth}
+                className="mt-2 text-xs text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300 font-medium underline"
+              >
+                Click here to retry
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
