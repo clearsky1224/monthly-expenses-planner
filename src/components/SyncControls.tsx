@@ -256,8 +256,8 @@ export default function SyncControls({ selectedMonth, onSyncComplete }: SyncCont
       {isAuthenticated && (
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
-              <Cloud className="w-5 h-5" />
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <Cloud className="w-5 h-5 text-gray-700" />
               Data Sync Controls
             </h2>
             <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
@@ -298,7 +298,7 @@ export default function SyncControls({ selectedMonth, onSyncComplete }: SyncCont
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
                 <h3 className="font-medium text-gray-900">Enable Automatic Sync</h3>
-                <p className="text-sm text-gray-500">Automatically sync data with Google Sheets</p>
+                <p className="text-sm text-gray-600">Automatically sync data with Google Sheets</p>
               </div>
               <button
                 onClick={handleToggleSync}
