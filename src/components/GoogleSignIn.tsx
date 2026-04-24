@@ -275,25 +275,25 @@ export default function GoogleSignIn({ onAuthChange }: GoogleSignInProps) {
 
       {/* Security Note */}
       <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-        <p className="text-xs text-gray-600 text-center">
-          <Shield className="w-3 h-3 inline mr-1" />
+        <p className="text-xs text-gray-700 text-center">
+          <Shield className="w-3 h-3 inline mr-1 text-gray-600" />
           Your data is secure and only used for expense tracking
         </p>
       </div>
 
       {/* Features List */}
       <div className="mt-6 space-y-2">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <CheckCircle className="w-4 h-4 text-green-500" />
-          <span>Automatic data backup</span>
+        <div className="flex items-center gap-2 text-sm">
+          <CheckCircle className="w-4 h-4 text-green-600" />
+          <span className="text-gray-800">Automatic data backup</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <CheckCircle className="w-4 h-4 text-green-500" />
-          <span>Access from any device</span>
+        <div className="flex items-center gap-2 text-sm">
+          <CheckCircle className="w-4 h-4 text-green-600" />
+          <span className="text-gray-800">Access from any device</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <CheckCircle className="w-4 h-4 text-green-500" />
-          <span>Export to Excel/CSV</span>
+        <div className="flex items-center gap-2 text-sm">
+          <CheckCircle className="w-4 h-4 text-green-600" />
+          <span className="text-gray-800">Export to Excel/CSV</span>
         </div>
       </div>
     </div>
