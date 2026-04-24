@@ -24,3 +24,43 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Custom Date Picker Styling */
+input[type="month"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 4px;
+  transition: all 0.2s;
+}
+
+input[type="month"]::-webkit-calendar-picker-indicator:hover {
+  background-color: #e5e7eb;
+}
+
+/* Style the calendar popup for WebKit browsers */
+input[type="month"]::-webkit-datetime-edit {
+  padding: 0;
+}
+
+input[type="month"]::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+
+input[type="month"]::-webkit-datetime-edit-text {
+  color: #6b7280;
+  padding: 0 2px;
+}
+
+input[type="month"]::-webkit-datetime-edit-month-field,
+input[type="month"]::-webkit-datetime-edit-year-field {
+  color: #111827;
+  font-weight: 500;
+}
+
+input[type="month"]::-webkit-datetime-edit-month-field:focus,
+input[type="month"]::-webkit-datetime-edit-year-field:focus {
+  background-color: #dbeafe;
+  color: #1e40af;
+  outline: none;
+  border-radius: 2px;
+}
