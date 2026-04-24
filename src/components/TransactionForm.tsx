@@ -57,26 +57,26 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
   };
 
   return (
-    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 p-6">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
           <Plus className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">Add Transaction</h2>
-          <p className="text-xs text-slate-600 dark:text-slate-400">Record your income or expense</p>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900">Add Transaction</h2>
+          <p className="text-xs text-gray-600">Record your income or expense</p>
         </div>
       </div>
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Transaction Type Toggle */}
-        <div className="flex bg-slate-100 dark:bg-slate-700/50 rounded-2xl p-1.5 shadow-inner">
+        <div className="flex bg-gray-100 rounded-2xl p-1.5 shadow-inner">
           <button
             type="button"
             onClick={() => setType('expense')}
             className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
               type === 'expense'
                 ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/25'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                : 'text-gray-700 hover:text-gray-900'
             }`}
           >
             Expense
@@ -87,7 +87,7 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
             className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
               type === 'income'
                 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                : 'text-gray-700 hover:text-gray-900'
             }`}
           >
             Income
@@ -98,7 +98,7 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {/* Amount */}
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm font-bold text-gray-800 mb-2">
               Amount
             </label>
             <div className="relative">
@@ -111,7 +111,7 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="pl-10 pr-4 py-3 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-slate-100 font-medium shadow-sm transition-all duration-200"
+                className="pl-10 pr-4 py-3 w-full bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium shadow-sm transition-all duration-200"
                 placeholder="0.00"
                 required
               />
@@ -120,7 +120,7 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm font-bold text-gray-800 mb-2">
               Description
             </label>
             <div className="relative">
@@ -131,7 +131,7 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="pl-10 pr-4 py-3 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-slate-100 font-medium shadow-sm transition-all duration-200"
+                className="pl-10 pr-4 py-3 w-full bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium shadow-sm transition-all duration-200"
                 placeholder="Enter description"
                 required
               />
@@ -143,14 +143,14 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {/* Category */}
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm font-bold text-gray-800 mb-2">
               Category
             </label>
             <div className="relative">
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="px-4 py-3 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-slate-100 font-medium shadow-sm transition-all duration-200 appearance-none cursor-pointer"
+                className="px-4 py-3 w-full bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium shadow-sm transition-all duration-200 appearance-none cursor-pointer"
                 required
               >
                 <option value="">Select category</option>
@@ -170,7 +170,7 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
 
           {/* Date */}
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm font-bold text-gray-800 mb-2">
               Date
             </label>
             <div className="relative">
@@ -178,11 +178,11 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="px-4 py-3 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-slate-100 font-medium shadow-sm transition-all duration-200"
+                className="px-4 py-3 w-full bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium shadow-sm transition-all duration-200"
                 required
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <Calendar className="w-5 h-5 text-slate-400" />
+                <Calendar className="w-5 h-5 text-gray-500" />
               </div>
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
           type="submit"
           disabled={isSubmitting}
           className={`w-full py-3 sm:py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-all duration-200 font-medium active:scale-[0.98] shadow-sm ${
-            isSubmitting ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : ''
+            isSubmitting ? '!bg-gray-400 !text-gray-100 cursor-not-allowed' : ''
           }`}
         >
           {isSubmitting ? 'Adding...' : 'Add Transaction'}
