@@ -243,7 +243,11 @@ export class GoogleSheetsManager {
   }
 
   isAuthenticated(): boolean {
-    return !!(this.tokenObject?.access_token);
+    return !!this.tokenObject?.access_token;
+  }
+
+  getToken(): TokenResponse | null {
+    return this.tokenObject;
   }
 
   getUserProfile(): UserProfile | null {

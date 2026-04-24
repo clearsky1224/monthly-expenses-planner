@@ -39,7 +39,16 @@ export default function SyncControls({ selectedMonth, onSyncComplete }: SyncCont
 
   const checkAuthStatus = () => {
     const sheetsManager = GoogleSheetsManager.getInstance();
-    setIsAuthenticated(sheetsManager.isAuthenticated());
+    const authStatus = sheetsManager.isAuthenticated();
+    setIsAuthenticated(authStatus);
+    
+    // Also check if we have a valid token
+    if (authStatus) {
+      const token = sheetsManager.getToken();
+      if (!token || !token.access_token) {
+        setIsAuthenticated(false);
+      }
+    }
   };
 
   const checkSyncStatus = () => {
@@ -59,6 +68,14 @@ export default function SyncControls({ selectedMonth, onSyncComplete }: SyncCont
       setIsSyncEnabled(false);
       DataManager.setSyncEnabled(false);
     }
+    // Force a check of authentication status to ensure UI is in sync
+    setTimeout(() => {
+      const sheetsManager = GoogleSheetsManager.getInstance();
+      const actualAuthStatus = sheetsManager.isAuthenticated();
+      if (actualAuthStatus !== authenticated) {
+        setIsAuthenticated(actualAuthStatus);
+      }
+    }, 100);
   };
 
   const saveLastSyncTime = () => {
