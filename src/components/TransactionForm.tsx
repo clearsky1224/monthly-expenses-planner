@@ -57,112 +57,135 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-      <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Add Transaction</h2>
-      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-        {/* Transaction Type */}
+    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 dark:border-slate-700/50 p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+          <Plus className="w-5 h-5 text-white" />
+        </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2 sm:mb-3">
-            Type
-          </label>
-          <div className="flex gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => setType('expense')}
-              className={`flex-1 py-3 sm:py-2 px-3 sm:px-4 rounded-lg font-medium transition-all duration-200 active:scale-95 ${
-                type === 'expense'
-                  ? 'bg-red-500 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
-              }`}
-            >
-              Expense
-            </button>
-            <button
-              type="button"
-              onClick={() => setType('income')}
-              className={`flex-1 py-3 sm:py-2 px-3 sm:px-4 rounded-lg font-medium transition-all duration-200 active:scale-95 ${
-                type === 'income'
-                  ? 'bg-green-500 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
-              }`}
-            >
-              Income
-            </button>
-          </div>
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">Add Transaction</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400">Record your income or expense</p>
+        </div>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Transaction Type Toggle */}
+        <div className="flex bg-slate-100 dark:bg-slate-700/50 rounded-2xl p-1.5 shadow-inner">
+          <button
+            type="button"
+            onClick={() => setType('expense')}
+            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
+              type === 'expense'
+                ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/25'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            Expense
+          </button>
+          <button
+            type="button"
+            onClick={() => setType('income')}
+            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
+              type === 'income'
+                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            Income
+          </button>
         </div>
 
         {/* Amount and Description Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {/* Amount */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
               Amount
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
-                $
-              </span>
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <DollarSign className="w-3 h-3 text-white" />
+              </div>
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full pl-8 pr-3 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-sm"
+                className="pl-10 pr-4 py-3 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-slate-100 font-medium shadow-sm transition-all duration-200"
                 placeholder="0.00"
                 required
               />
             </div>
           </div>
 
-          {/* Date */}
+          {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+              Description
             </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-sm"
-              required
-            />
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 bg-gradient-to-br from-slate-400 to-slate-600 rounded-lg flex items-center justify-center">
+                <FileText className="w-3 h-3 text-white" />
+              </div>
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="pl-10 pr-4 py-3 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-slate-100 font-medium shadow-sm transition-all duration-200"
+                placeholder="Enter description"
+                required
+              />
+            </div>
           </div>
         </div>
 
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description
-          </label>
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-sm"
-            placeholder="Enter description"
-            required
-          />
-        </div>
+        {/* Category and Date Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+              Category
+            </label>
+            <div className="relative">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="px-4 py-3 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-slate-100 font-medium shadow-sm transition-all duration-200 appearance-none cursor-pointer"
+                required
+              >
+                <option value="">Select category</option>
+                {filteredCategories.map((cat) => (
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <div className="w-5 h-5 bg-gradient-to-br from-slate-400 to-slate-600 rounded-lg flex items-center justify-center">
+                  <Plus className="w-3 h-3 text-white rotate-45" />
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {/* Category */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Category
-          </label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-sm"
-            required
-          >
-            <option value="">Select a category</option>
-            {filteredCategories.map(category => (
-              <option key={category.id} value={category.name}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+          {/* Date */}
+          <div>
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+              Date
+            </label>
+            <div className="relative">
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="px-4 py-3 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 dark:text-slate-100 font-medium shadow-sm transition-all duration-200"
+                required
+              />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <Calendar className="w-5 h-5 text-slate-400" />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Submit Button */}
