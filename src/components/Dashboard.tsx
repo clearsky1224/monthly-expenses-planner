@@ -102,40 +102,40 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white">
             <div className="flex items-center justify-between mb-2">
-              <ArrowUpRight className="w-5 h-5" />
-              <span className="text-xs opacity-80">Income</span>
+              <ArrowUpRight className="w-5 h-5 text-white" />
+              <span className="text-xs text-white opacity-90">Income</span>
             </div>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-white">
               ${currentMonth.totalIncome.toFixed(0)}
             </div>
           </div>
 
           <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-4 text-white">
             <div className="flex items-center justify-between mb-2">
-              <ArrowDownRight className="w-5 h-5" />
-              <span className="text-xs opacity-80">Expenses</span>
+              <ArrowDownRight className="w-5 h-5 text-white" />
+              <span className="text-xs text-white opacity-90">Expenses</span>
             </div>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-white">
               ${currentMonth.totalExpenses.toFixed(0)}
             </div>
           </div>
 
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
             <div className="flex items-center justify-between mb-2">
-              <Wallet className="w-5 h-5" />
-              <span className="text-xs opacity-80">Balance</span>
+              <Wallet className="w-5 h-5 text-white" />
+              <span className="text-xs text-white opacity-90">Balance</span>
             </div>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-white">
               ${(currentMonth.totalIncome - currentMonth.totalExpenses).toFixed(0)}
             </div>
           </div>
 
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white">
             <div className="flex items-center justify-between mb-2">
-              <Target className="w-5 h-5" />
-              <span className="text-xs opacity-80">Savings</span>
+              <Target className="w-5 h-5 text-white" />
+              <span className="text-xs text-white opacity-90">Savings</span>
             </div>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-white">
               {savingsRate.toFixed(1)}%
             </div>
           </div>
@@ -153,8 +153,10 @@ export default function Dashboard() {
               return (
                 <div key={budget.id} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700">{budget.category}</span>
-                    <span className={`${isOverBudget ? 'text-red-600' : isNearLimit ? 'text-yellow-600' : 'text-gray-600'}`}>
+                    <span className="font-medium text-gray-800">{budget.category}</span>
+                    <span className={`font-medium ${
+                      isOverBudget ? 'text-red-700' : isNearLimit ? 'text-yellow-700' : 'text-gray-700'
+                    }`}>
                       ${budget.spent.toFixed(0)} / ${budget.limit.toFixed(0)}
                     </span>
                   </div>
@@ -183,11 +185,11 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2">
                     <div 
                       className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: categoryInfo?.color || '#gray' }}
+                      style={{ backgroundColor: categoryInfo?.color || '#6b7280' }}
                     ></div>
-                    <span className="text-sm text-gray-700">{categoryInfo?.name || category.category}</span>
+                    <span className="text-sm text-gray-800">{categoryInfo?.name || category.category}</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-semibold text-gray-900">
                     ${category.amount.toFixed(0)}
                   </span>
                 </div>
@@ -235,10 +237,10 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl p-4 shadow-sm">
           <h3 className="font-semibold text-gray-900 mb-4">Recent Transactions</h3>
           {recentTransactions.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Activity className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-              <p>No transactions yet</p>
-              <p className="text-sm">Add your first transaction to get started</p>
+            <div className="text-center py-8 text-gray-600">
+              <Activity className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+              <p className="text-gray-800">No transactions yet</p>
+              <p className="text-sm text-gray-600">Add your first transaction to get started</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -257,16 +259,16 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <p className="font-medium text-gray-900 text-sm">{transaction.description}</p>
-                        <p className="text-xs text-gray-500">{category?.name}</p>
+                        <p className="text-xs text-gray-600">{category?.name}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className={`font-semibold text-sm ${
-                        transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                        transaction.type === 'income' ? 'text-green-700' : 'text-red-700'
                       }`}>
                         {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-600">
                         {format(new Date(transaction.date), 'MMM dd')}
                       </p>
                     </div>
@@ -303,7 +305,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-gray-900">Monthly Expenses</h1>
-              <p className="text-sm text-gray-500">Track your finances</p>
+              <p className="text-sm text-gray-600">Track your finances</p>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -326,7 +328,7 @@ export default function Dashboard() {
                 className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 border-b-2 transition-colors ${
                   activeTab === tab.id
                     ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    : 'border-transparent text-gray-600 hover:text-gray-800'
                 }`}
               >
                 <Icon className="w-5 h-5" />
