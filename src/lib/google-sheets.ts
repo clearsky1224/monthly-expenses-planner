@@ -462,7 +462,7 @@ export class GoogleSheetsManager {
   private getSpreadsheetId(): string {
     const spreadsheetId = this.getUserSpreadsheetId();
     if (!spreadsheetId) {
-      throw new Error('No spreadsheet selected. Please create or select a spreadsheet first.');
+      throw new Error('No Google Sheet selected. Please click "Create New Spreadsheet" to create a new sheet for your data, or "Select Existing Spreadsheet" to use an existing one.');
     }
     return spreadsheetId;
   }
