@@ -148,6 +148,13 @@ export class GoogleSheetsManager {
           if (tokenResponse && tokenResponse.access_token) {
             this.tokenObject = tokenResponse;
             
+            // Store token in localStorage with expiration time
+            const tokenData = {
+              ...tokenResponse,
+              stored_at: Date.now()
+            };
+            localStorage.setItem('google_sheets_token', JSON.stringify(tokenData));
+            
             // Fetch user profile information
             await this.fetchUserProfile();
             
@@ -310,7 +317,36 @@ export class GoogleSheetsManager {
       ]);
       
       // Try to restore previous session
+      const storedToken = localStorage.getItem('google_sheets_token');
       const storedProfile = localStorage.getItem('google_user_profile');
+      
+      if (storedToken) {
+        try {
+          const tokenData = JSON.parse(storedToken);
+          const storedAt = tokenData.stored_at || 0;
+          const expiresIn = tokenData.expires_in || 3600;
+          const ageInSeconds = (Date.now() - storedAt) / 1000;
+          
+          // Check if token is still valid (with 5 minute buffer)
+          if (ageInSeconds < (expiresIn - 300)) {
+            this.tokenObject = tokenData;
+            
+            // Validate the token is actually still valid
+            const isValid = await this.validateToken();
+            if (!isValid) {
+              // Token is invalid, clear it
+              localStorage.removeItem('google_sheets_token');
+              this.tokenObject = null;
+            }
+          } else {
+            // Token expired, clear it
+            localStorage.removeItem('google_sheets_token');
+          }
+        } catch (error) {
+          localStorage.removeItem('google_sheets_token');
+        }
+      }
+      
       if (storedProfile) {
         try {
           this.userProfile = JSON.parse(storedProfile);
