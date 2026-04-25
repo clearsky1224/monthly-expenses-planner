@@ -1,16 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, DollarSign, Calendar, FileText } from 'lucide-react';
+import { Plus, DollarSign, Calendar, FileText, Tag, X, Check } from 'lucide-react';
 import { Transaction, Category } from '@/types';
 import { DataManager } from '@/lib/data';
 
 interface TransactionFormProps {
   onTransactionAdded: (transaction: Transaction) => void;
   categories: Category[];
+  onCategoryAdded?: (category: Category) => void;
 }
 
-export default function TransactionForm({ onTransactionAdded, categories }: TransactionFormProps) {
+const CATEGORY_COLORS = [
+  '#ef4444', '#f97316', '#eab308', '#22c55e',
+  '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+];
+
+export default function TransactionForm({ onTransactionAdded, categories, onCategoryAdded }: TransactionFormProps) {
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
@@ -18,7 +24,45 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryColor, setNewCategoryColor] = useState('#ef4444');
+  const [isSavingCategory, setIsSavingCategory] = useState(false);
+
   const filteredCategories = categories.filter(cat => cat.type === type);
+
+  const handleCategoryChange = (value: string) => {
+    if (value === '__add_new__') {
+      setShowNewCategory(true);
+      setCategory('');
+    } else {
+      setCategory(value);
+    }
+  };
+
+  const handleSaveNewCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    setIsSavingCategory(true);
+    try {
+      const newCat: Category = {
+        id: Date.now().toString(),
+        name: newCategoryName.trim(),
+        type,
+        color: newCategoryColor,
+      };
+      const allCategories = await DataManager.getCategories();
+      await DataManager.saveCategories([...allCategories, newCat]);
+      if (onCategoryAdded) onCategoryAdded(newCat);
+      setCategory(newCat.name);
+      setNewCategoryName('');
+      setNewCategoryColor('#ef4444');
+      setShowNewCategory(false);
+    } catch (error) {
+      console.error('Error saving category:', error);
+    } finally {
+      setIsSavingCategory(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,26 +190,67 @@ export default function TransactionForm({ onTransactionAdded, categories }: Tran
             <label className="block text-sm font-bold text-gray-800 mb-2">
               Category
             </label>
-            <div className="relative">
+            {!showNewCategory ? (
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="px-4 py-3 w-full bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium shadow-sm transition-all duration-200 appearance-none cursor-pointer"
-                required
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className="px-4 py-3 w-full bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium shadow-sm transition-all duration-200 cursor-pointer"
+                required={!showNewCategory}
               >
                 <option value="">Select category</option>
                 {filteredCategories.map((cat) => (
-                  <option key={cat.id} value={cat.name}>
-                    {cat.name}
-                  </option>
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
+                <option value="__add_new__">+ Add new category...</option>
               </select>
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <div className="w-5 h-5 bg-gradient-to-br from-slate-400 to-slate-600 rounded-lg flex items-center justify-center">
-                  <Plus className="w-3 h-3 text-white rotate-45" />
+            ) : (
+              <div className="border border-blue-300 rounded-xl p-3 bg-blue-50 space-y-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <Tag className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-semibold text-blue-700">New {type} category</span>
+                </div>
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Category name"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  autoFocus
+                />
+                <div className="flex gap-1.5 flex-wrap">
+                  {CATEGORY_COLORS.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setNewCategoryColor(color)}
+                      className={`w-6 h-6 rounded-full transition-transform ${
+                        newCategoryColor === color ? 'ring-2 ring-offset-1 ring-gray-600 scale-110' : ''
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSaveNewCategory}
+                    disabled={isSavingCategory || !newCategoryName.trim()}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    {isSavingCategory ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowNewCategory(false); setNewCategoryName(''); }}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    Cancel
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Date */}

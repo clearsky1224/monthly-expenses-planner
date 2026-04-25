@@ -208,6 +208,7 @@ export default function Dashboard() {
           <TransactionForm 
             onTransactionAdded={handleTransactionAdded}
             categories={categories}
+            onCategoryAdded={loadData}
           />
         </div>
       </div>
