@@ -11,7 +11,6 @@ import {
   AlertCircle,
   Loader2
 } from 'lucide-react';
-import SpreadsheetSelector from './SpreadsheetSelector';
 
 interface GoogleSignInProps {
   onAuthChange?: (isAuthenticated: boolean, userProfile?: any) => void;
@@ -203,12 +202,6 @@ export default function GoogleSignIn({ onAuthChange }: GoogleSignInProps) {
             )}
           </button>
         </div>
-
-        {/* Spreadsheet Selector */}
-        <SpreadsheetSelector onSpreadsheetSelected={(spreadsheetId) => {
-          // Optional: Handle spreadsheet selection
-          console.log('Spreadsheet selected:', spreadsheetId);
-        }} />
       </div>
     );
   }

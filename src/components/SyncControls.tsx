@@ -211,12 +211,17 @@ export default function SyncControls({ selectedMonth, onSyncComplete }: SyncCont
       setError(null);
       
       const sheetsManager = GoogleSheetsManager.getInstance();
-      const spreadsheetId = await sheetsManager.createSpreadsheet();
+      const spreadsheetId = await sheetsManager.createSpreadsheet('Monthly Expenses - ' + new Date().toLocaleDateString());
       
-      setSuccess('New spreadsheet created successfully!');
-      // The spreadsheet ID is automatically saved in the GoogleSheetsManager
+      setSuccess(`New spreadsheet created successfully! You can now sync your data.`);
+      console.log('Spreadsheet created with ID:', spreadsheetId);
+      
+      // Enable sync automatically after creating spreadsheet
+      DataManager.setSyncEnabled(true);
+      setIsSyncEnabled(true);
     } catch (err) {
-      setError('Failed to create spreadsheet');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(`Failed to create spreadsheet: ${errorMessage}`);
       console.error('Create spreadsheet error:', err);
     } finally {
       setIsLoading(false);
