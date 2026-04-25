@@ -116,16 +116,27 @@ export default function SpreadsheetSelector({ onSpreadsheetSelected }: Spreadshe
   return (
     <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <FileSpreadsheet className="w-5 h-5" />
           Google Sheets Selection
         </h3>
-        {selectedSpreadsheet && (
-          <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-            <CheckCircle className="w-4 h-4" />
-            Connected
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {selectedSpreadsheet && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+              <CheckCircle className="w-4 h-4" />
+              Connected
+            </div>
+          )}
+          {!showCreateForm && (
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              New Sheet
+            </button>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -232,14 +243,8 @@ export default function SpreadsheetSelector({ onSpreadsheetSelected }: Spreadshe
         ) : spreadsheets.length === 0 ? (
           <div className="text-center py-8">
             <FolderOpen className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-500 mb-4">No spreadsheets found</p>
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors mx-auto"
-            >
-              <Plus className="w-4 h-4" />
-              Create New Spreadsheet
-            </button>
+            <p className="text-gray-600 mb-1">No spreadsheets found</p>
+            <p className="text-sm text-gray-500">Click "New Sheet" above to create one</p>
           </div>
         ) : (
           <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -281,18 +286,6 @@ export default function SpreadsheetSelector({ onSpreadsheetSelected }: Spreadshe
         )}
       </div>
 
-      {/* Create Button */}
-      {!showCreateForm && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Create New Spreadsheet
-          </button>
-        </div>
-      )}
     </div>
   );
 }
