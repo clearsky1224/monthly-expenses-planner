@@ -17,7 +17,7 @@ const CATEGORY_COLORS = [
 ];
 
 export default function TransactionForm({ onTransactionAdded, categories, onCategoryAdded }: TransactionFormProps) {
-  const [type, setType] = useState<'income' | 'expense' | 'savings'>('expense');
+  const [type, setType] = useState<'income' | 'expense'>('expense');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -172,17 +172,6 @@ export default function TransactionForm({ onTransactionAdded, categories, onCate
             }`}
           >
             Income
-          </button>
-          <button
-            type="button"
-            onClick={() => setType('savings')}
-            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
-              type === 'savings'
-                ? 'bg-gradient-to-r from-violet-500 to-violet-600 text-white shadow-lg shadow-violet-500/25'
-                : 'text-gray-700 hover:text-gray-900'
-            }`}
-          >
-            Savings
           </button>
         </div>
 
