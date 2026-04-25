@@ -153,6 +153,9 @@ export class GoogleSheetsManager {
           if (tokenResponse && tokenResponse.access_token) {
             this.tokenObject = tokenResponse;
             
+            // Set token on gapi client so API calls are authenticated
+            window.gapi.client.setToken({ access_token: tokenResponse.access_token });
+            
             // Store token in localStorage with expiration time
             const tokenData = {
               ...tokenResponse,
@@ -344,6 +347,9 @@ export class GoogleSheetsManager {
           // Check if token is still valid (with 5 minute buffer)
           if (ageInSeconds < (expiresIn - 300)) {
             this.tokenObject = tokenData;
+            
+            // Restore token on gapi client
+            window.gapi.client.setToken({ access_token: tokenData.access_token });
             
             // Validate the token is actually still valid
             const isValid = await this.validateToken();
@@ -854,6 +860,9 @@ export class GoogleSheetsManager {
           try {
             if (tokenResponse && tokenResponse.access_token) {
               this.tokenObject = tokenResponse;
+
+              // Set token on gapi client so API calls are authenticated
+              window.gapi.client.setToken({ access_token: tokenResponse.access_token });
 
               // Store new token
               const tokenData = {
