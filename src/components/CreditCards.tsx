@@ -249,7 +249,7 @@ export default function CreditCards() {
                 </div>
                 <div className="text-right">
                   <p className="text-xs opacity-70">Available</p>
-                  <p className="text-sm font-bold">${(card.creditLimit - used).toLocaleString()}</p>
+                  <p className="text-sm font-bold">₱{(card.creditLimit - used).toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -258,7 +258,7 @@ export default function CreditCards() {
             <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs text-gray-600">
-                  Used <span className="font-semibold text-gray-800">${used.toLocaleString()}</span> of ${card.creditLimit.toLocaleString()}
+                  Used <span className="font-semibold text-gray-800">₱{used.toLocaleString()}</span> of ₱{card.creditLimit.toLocaleString()}
                 </span>
                 <span className={`text-xs font-semibold ${pct >= 90 ? 'text-red-600' : pct >= 70 ? 'text-orange-500' : 'text-emerald-600'}`}>
                   {pct.toFixed(0)}%
@@ -362,7 +362,7 @@ export default function CreditCards() {
                           <p className="text-xs text-gray-500">{exp.category} · {exp.date}</p>
                         </div>
                         <div className="flex items-center gap-2 ml-2">
-                          <span className="text-sm font-semibold text-gray-900">${exp.amount.toFixed(2)}</span>
+                          <span className="text-sm font-semibold text-gray-900">₱{exp.amount.toFixed(2)}</span>
                           <button
                             onClick={async () => { await DataManager.deleteCreditCardExpense(card.id, exp.id); await refresh(); }}
                             className="text-gray-300 hover:text-red-500 transition-colors"
@@ -374,7 +374,7 @@ export default function CreditCards() {
                     ))}
                     <div className="flex justify-between pt-1">
                       <span className="text-xs font-semibold text-gray-600">Total</span>
-                      <span className="text-sm font-bold text-gray-900">${used.toFixed(2)}</span>
+                      <span className="text-sm font-bold text-gray-900">₱{used.toFixed(2)}</span>
                     </div>
                   </div>
                 )}

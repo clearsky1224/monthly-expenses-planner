@@ -130,7 +130,7 @@ export default function Analytics() {
               <TrendingUp className="w-4 h-4 text-green-500" />
             </div>
             <p className="text-lg font-bold text-green-600">
-              ${currentMonth.income.toFixed(2)}
+              ₱{currentMonth.income.toFixed(2)}
             </p>
             <p className={`text-xs mt-1 ${
               incomeTrend >= 0 ? 'text-green-600' : 'text-red-600'
@@ -146,7 +146,7 @@ export default function Analytics() {
               <TrendingDown className="w-4 h-4 text-red-500" />
             </div>
             <p className="text-lg font-bold text-red-600">
-              ${currentMonth.expenses.toFixed(2)}
+              ₱{currentMonth.expenses.toFixed(2)}
             </p>
             <p className={`text-xs mt-1 ${
               expenseTrend >= 0 ? 'text-red-600' : 'text-green-600'
@@ -164,7 +164,7 @@ export default function Analytics() {
             <p className={`text-lg font-bold ${
               currentMonth.balance >= 0 ? 'text-blue-600' : 'text-red-600'
             }`}>
-              ${currentMonth.balance.toFixed(2)}
+              ₱{currentMonth.balance.toFixed(2)}
             </p>
             <p className="text-xs text-gray-500 mt-1">Net for this month</p>
           </div>
@@ -193,7 +193,7 @@ export default function Analytics() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" tick={{ fill: '#374151' }} />
                 <YAxis tick={{ fill: '#374151' }} />
-                <Tooltip formatter={(value) => `$${value}`} />
+                <Tooltip formatter={(value) => `₱${value}`} />
                 <Legend />
                 <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} />
                 <Line type="monotone" dataKey="expenses" stroke="#ef4444" strokeWidth={2} />
@@ -232,7 +232,7 @@ export default function Analytics() {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => `$${value}`} />
+                  <Tooltip formatter={(value) => `₱${value}`} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -266,9 +266,9 @@ export default function Analytics() {
                     return (
                       <tr key={index} className="border-b">
                         <td className="py-2 font-medium text-gray-900 text-xs">{category.category}</td>
-                        <td className="text-right py-2 text-gray-800 text-xs">${category.amount.toFixed(2)}</td>
+                        <td className="text-right py-2 text-gray-800 text-xs">₱{category.amount.toFixed(2)}</td>
                         <td className="text-right py-2 text-gray-800 text-xs">{category.count}</td>
-                        <td className="text-right py-2 text-gray-800 text-xs">${average.toFixed(2)}</td>
+                        <td className="text-right py-2 text-gray-800 text-xs">₱{average.toFixed(2)}</td>
                         <td className="text-right py-2 text-gray-800 text-xs">{percentage.toFixed(1)}%</td>
                       </tr>
                     );
@@ -291,7 +291,7 @@ export default function Analytics() {
                   <div key={index} className="p-4 bg-green-50 rounded-lg">
                     <h3 className="font-medium text-green-900">{source.category}</h3>
                     <p className="text-sm font-semibold text-green-600">
-                      ${source.amount.toFixed(2)}
+                      ₱{source.amount.toFixed(2)}
                     </p>
                     <p className="text-sm text-green-700">
                       {source.count} transactions • {percentage.toFixed(1)}% of income

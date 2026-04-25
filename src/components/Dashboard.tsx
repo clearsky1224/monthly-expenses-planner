@@ -116,7 +116,7 @@ export default function Dashboard() {
               <span className="text-xs text-white opacity-90">Income</span>
             </div>
             <div className="text-2xl font-bold text-white">
-              ${currentMonth.totalIncome.toFixed(0)}
+              ₱{currentMonth.totalIncome.toFixed(0)}
             </div>
           </div>
 
@@ -126,7 +126,7 @@ export default function Dashboard() {
               <span className="text-xs text-white opacity-90">Expenses</span>
             </div>
             <div className="text-2xl font-bold text-white">
-              ${currentMonth.totalExpenses.toFixed(0)}
+              ₱{currentMonth.totalExpenses.toFixed(0)}
             </div>
           </div>
 
@@ -136,7 +136,7 @@ export default function Dashboard() {
               <span className="text-xs text-white opacity-90">Balance</span>
             </div>
             <div className="text-2xl font-bold text-white">
-              ${(currentMonth.totalIncome - currentMonth.totalExpenses).toFixed(0)}
+              ₱{(currentMonth.totalIncome - currentMonth.totalExpenses).toFixed(0)}
             </div>
           </div>
 
@@ -168,7 +168,7 @@ export default function Dashboard() {
 
           {editingBudget ? (
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">$</span>
+              <span className="text-gray-500 text-sm">₱</span>
               <input
                 type="number"
                 value={budgetInput}
@@ -210,11 +210,11 @@ export default function Dashboard() {
               <div className="space-y-2">
                 <div className="flex items-end justify-between">
                   <div>
-                    <span className="text-2xl font-bold text-gray-900">${spent.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
-                    <span className="text-sm text-gray-500 ml-1">/ ${monthlyBudget.toLocaleString()} budget</span>
+                    <span className="text-2xl font-bold text-gray-900">₱{spent.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                    <span className="text-sm text-gray-500 ml-1">/ ₱{monthlyBudget.toLocaleString()} budget</span>
                   </div>
                   <span className={`text-sm font-semibold ${ isOver ? 'text-red-600' : isNear ? 'text-orange-500' : 'text-green-600' }`}>
-                    {isOver ? `$${(spent - monthlyBudget).toLocaleString(undefined, { maximumFractionDigits: 0 })} over` : `$${remaining.toLocaleString(undefined, { maximumFractionDigits: 0 })} left`}
+                    {isOver ? `₱${(spent - monthlyBudget).toLocaleString(undefined, { maximumFractionDigits: 0 })} over` : `₱${remaining.toLocaleString(undefined, { maximumFractionDigits: 0 })} left`}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
@@ -247,7 +247,7 @@ export default function Dashboard() {
                     <span className={`font-medium ${
                       isOverBudget ? 'text-red-700' : isNearLimit ? 'text-yellow-700' : 'text-gray-700'
                     }`}>
-                      ${budget.spent.toFixed(0)} / ${budget.limit.toFixed(0)}
+                      ₱{budget.spent.toFixed(0)} / ₱{budget.limit.toFixed(0)}
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -280,7 +280,7 @@ export default function Dashboard() {
                     <span className="text-sm text-gray-800">{categoryInfo?.name || category.category}</span>
                   </div>
                   <span className="text-sm font-semibold text-gray-900">
-                    ${category.amount.toFixed(0)}
+                    ₱{category.amount.toFixed(0)}
                   </span>
                 </div>
               );
