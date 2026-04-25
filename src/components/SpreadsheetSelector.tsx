@@ -31,7 +31,7 @@ export default function SpreadsheetSelector({ onSpreadsheetSelected }: Spreadshe
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newSpreadsheetName, setNewSpreadsheetName] = useState('Monthly Expenses Planner');
+  const [newSpreadsheetName, setNewSpreadsheetName] = useState('Monthly Expenses');
 
   const sheetsManager = GoogleSheetsManager.getInstance();
 
@@ -186,13 +186,16 @@ export default function SpreadsheetSelector({ onSpreadsheetSelected }: Spreadshe
         <div className="mb-6 p-4 border border-gray-200 rounded-lg">
           <h4 className="font-medium text-gray-900 mb-3">Create New Spreadsheet</h4>
           <div className="space-y-3">
-            <input
-              type="text"
-              value={newSpreadsheetName}
-              onChange={(e) => setNewSpreadsheetName(e.target.value)}
-              placeholder="Enter spreadsheet name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Sheet will be named: <span className="font-medium text-gray-700">[ExpenseTracker] {newSpreadsheetName || '...'}</span></p>
+              <input
+                type="text"
+                value={newSpreadsheetName}
+                onChange={(e) => setNewSpreadsheetName(e.target.value)}
+                placeholder="Enter spreadsheet name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              />
+            </div>
             <div className="flex gap-2">
               <button
                 onClick={handleCreateSpreadsheet}

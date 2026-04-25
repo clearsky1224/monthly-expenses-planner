@@ -10,6 +10,9 @@ const DRIVE_DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/
 // User-specific spreadsheet storage key
 const USER_SPREADSHEET_KEY = 'user_spreadsheet_id';
 
+// App identifier prefix added to all created spreadsheets
+const APP_SHEET_PREFIX = '[ExpenseTracker]';
+
 // Sheet names
 const TRANSACTIONS_SHEET = 'Transactions';
 const CATEGORIES_SHEET = 'Categories';
@@ -388,14 +391,17 @@ export class GoogleSheetsManager {
     localStorage.removeItem(USER_SPREADSHEET_KEY);
   }
 
-  async createSpreadsheet(title: string = 'Monthly Expenses Planner'): Promise<string> {
+  async createSpreadsheet(title: string = 'Monthly Expenses'): Promise<string> {
     await this.ensureAuthenticated();
+    
+    // Always prefix the title so we can filter our sheets later
+    const prefixedTitle = `${APP_SHEET_PREFIX} ${title}`;
     
     try {
       const response = await window.gapi.client.sheets.spreadsheets.create({
         resource: {
           properties: {
-            title,
+            title: prefixedTitle,
           },
           sheets: [
             {
@@ -476,7 +482,7 @@ export class GoogleSheetsManager {
     
     try {
       const response = await window.gapi.client.drive.files.list({
-        q: "mimeType='application/vnd.google-apps.spreadsheet'",
+        q: `mimeType='application/vnd.google-apps.spreadsheet' and name contains '${APP_SHEET_PREFIX}'`,
         fields: 'files(id, name, webViewLink)',
         orderBy: 'modifiedTime desc',
       });
