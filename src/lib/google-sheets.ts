@@ -612,7 +612,7 @@ export class GoogleSheetsManager {
     const spreadsheetId = this.getSpreadsheetId();
 
     try {
-      const filteredTransactions = month 
+      const filteredTransactions = month
         ? transactions.filter(t => t.date.startsWith(month))
         : transactions;
 
@@ -626,35 +626,21 @@ export class GoogleSheetsManager {
         t.createdAt,
       ]);
 
-      // Clear existing data for the month if specified
-      if (month) {
-        const existingData = await window.gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId,
-          range: `${TRANSACTIONS_SHEET}!A2:G`,
-        });
-
-        const rowsToRemove = existingData.result.values?.filter((row: string[]) => 
-          row[5]?.startsWith(month)
-        ) || [];
-
-        if (rowsToRemove.length > 0) {
-          // This is a simplified approach - in production, you'd want to be more precise
-          await window.gapi.client.sheets.spreadsheets.values.clear({
-            spreadsheetId,
-            range: `${TRANSACTIONS_SHEET}!A2:G`,
-          });
-        }
-      }
-
-      // Append new data
-      await window.gapi.client.sheets.spreadsheets.values.append({
+      // Always clear existing data first to prevent duplicates
+      await window.gapi.client.sheets.spreadsheets.values.clear({
         spreadsheetId,
         range: `${TRANSACTIONS_SHEET}!A2:G`,
-        valueInputOption: 'USER_ENTERED',
-        resource: {
-          values,
-        },
       });
+
+      // Write all transactions fresh (only if there's data)
+      if (values.length > 0) {
+        await window.gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `${TRANSACTIONS_SHEET}!A2`,
+          valueInputOption: 'USER_ENTERED',
+          resource: { values },
+        });
+      }
     } catch (error) {
       console.error('Error saving transactions:', error);
       throw error;
@@ -715,13 +701,11 @@ export class GoogleSheetsManager {
       });
 
       if (values.length > 0) {
-        await window.gapi.client.sheets.spreadsheets.values.append({
+        await window.gapi.client.sheets.spreadsheets.values.update({
           spreadsheetId,
-          range: `${CATEGORIES_SHEET}!A2:E`,
+          range: `${CATEGORIES_SHEET}!A2`,
           valueInputOption: 'USER_ENTERED',
-          resource: {
-            values,
-          },
+          resource: { values },
         });
       }
     } catch (error) {
@@ -778,13 +762,11 @@ export class GoogleSheetsManager {
       });
 
       if (values.length > 0) {
-        await window.gapi.client.sheets.spreadsheets.values.append({
+        await window.gapi.client.sheets.spreadsheets.values.update({
           spreadsheetId,
-          range: `${BUDGETS_SHEET}!A2:E`,
+          range: `${BUDGETS_SHEET}!A2`,
           valueInputOption: 'USER_ENTERED',
-          resource: {
-            values,
-          },
+          resource: { values },
         });
       }
     } catch (error) {
