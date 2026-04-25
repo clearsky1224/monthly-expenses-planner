@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   CATEGORIES: 'expenses-planner-categories',
   BUDGETS: 'expenses-planner-budgets',
   CREDIT_CARDS: 'expenses-planner-credit-cards',
+  MONTHLY_BUDGETS: 'expenses-planner-monthly-budgets',
   SYNC_ENABLED: 'expenses-planner-sync-enabled',
 } as const;
 
@@ -328,6 +329,31 @@ export class DataManager {
       console.error('Failed to sync from Google Sheets:', error);
       throw error;
     }
+  }
+
+  // ── Monthly Total Budget ──────────────────────────────────
+
+  static getMonthlyBudget(month: string): number | null {
+    if (typeof window === 'undefined') return null;
+    const data = localStorage.getItem(STORAGE_KEYS.MONTHLY_BUDGETS);
+    const map: Record<string, number> = data ? JSON.parse(data) : {};
+    return map[month] ?? null;
+  }
+
+  static setMonthlyBudget(month: string, amount: number): void {
+    if (typeof window === 'undefined') return;
+    const data = localStorage.getItem(STORAGE_KEYS.MONTHLY_BUDGETS);
+    const map: Record<string, number> = data ? JSON.parse(data) : {};
+    map[month] = amount;
+    localStorage.setItem(STORAGE_KEYS.MONTHLY_BUDGETS, JSON.stringify(map));
+  }
+
+  static removeMonthlyBudget(month: string): void {
+    if (typeof window === 'undefined') return;
+    const data = localStorage.getItem(STORAGE_KEYS.MONTHLY_BUDGETS);
+    const map: Record<string, number> = data ? JSON.parse(data) : {};
+    delete map[month];
+    localStorage.setItem(STORAGE_KEYS.MONTHLY_BUDGETS, JSON.stringify(map));
   }
 
   // ── Credit Cards ──────────────────────────────────────────

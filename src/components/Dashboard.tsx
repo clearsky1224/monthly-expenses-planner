@@ -12,7 +12,10 @@ import {
   Wallet,
   Target,
   Activity,
-  CreditCard
+  CreditCard,
+  Pencil,
+  Check,
+  X
 } from 'lucide-react';
 import { Transaction, DashboardData, MonthlySummary, Category } from '@/types';
 import { DataManager } from '@/lib/data';
@@ -28,6 +31,9 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [monthlyBudget, setMonthlyBudget] = useState<number | null>(null);
+  const [editingBudget, setEditingBudget] = useState(false);
+  const [budgetInput, setBudgetInput] = useState('');
 
   useEffect(() => {
     loadData();
@@ -35,6 +41,8 @@ export default function Dashboard() {
 
   const loadData = async () => {
     try {
+      const budget = DataManager.getMonthlyBudget(selectedMonth);
+      setMonthlyBudget(budget);
       const allTransactions = await DataManager.getTransactions();
       const currentMonth = await DataManager.getMonthlySummary(selectedMonth);
       const recentTransactions = allTransactions
@@ -141,6 +149,86 @@ export default function Dashboard() {
               {savingsRate.toFixed(1)}%
             </div>
           </div>
+        </div>
+
+        {/* Monthly Total Budget */}
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-semibold text-gray-900">Monthly Budget</h4>
+            {!editingBudget && (
+              <button
+                onClick={() => { setBudgetInput(monthlyBudget?.toString() ?? ''); setEditingBudget(true); }}
+                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+              >
+                <Pencil className="w-3 h-3" />
+                {monthlyBudget ? 'Edit' : 'Set budget'}
+              </button>
+            )}
+          </div>
+
+          {editingBudget ? (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 text-sm">$</span>
+              <input
+                type="number"
+                value={budgetInput}
+                onChange={e => setBudgetInput(e.target.value)}
+                placeholder="e.g. 50000"
+                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                autoFocus
+              />
+              <button
+                onClick={() => {
+                  const val = parseFloat(budgetInput);
+                  if (!isNaN(val) && val > 0) {
+                    DataManager.setMonthlyBudget(selectedMonth, val);
+                    setMonthlyBudget(val);
+                  } else if (budgetInput === '' && monthlyBudget) {
+                    DataManager.removeMonthlyBudget(selectedMonth);
+                    setMonthlyBudget(null);
+                  }
+                  setEditingBudget(false);
+                }}
+                className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                <Check className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setEditingBudget(false)}
+                className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : monthlyBudget ? (() => {
+            const spent = currentMonth.totalExpenses;
+            const pct = Math.min((spent / monthlyBudget) * 100, 100);
+            const remaining = monthlyBudget - spent;
+            const isOver = spent > monthlyBudget;
+            const isNear = pct >= 80 && !isOver;
+            return (
+              <div className="space-y-2">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <span className="text-2xl font-bold text-gray-900">${spent.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                    <span className="text-sm text-gray-500 ml-1">/ ${monthlyBudget.toLocaleString()} budget</span>
+                  </div>
+                  <span className={`text-sm font-semibold ${ isOver ? 'text-red-600' : isNear ? 'text-orange-500' : 'text-green-600' }`}>
+                    {isOver ? `$${(spent - monthlyBudget).toLocaleString(undefined, { maximumFractionDigits: 0 })} over` : `$${remaining.toLocaleString(undefined, { maximumFractionDigits: 0 })} left`}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    className={`h-3 rounded-full transition-all ${ isOver ? 'bg-red-500' : isNear ? 'bg-orange-400' : 'bg-blue-500' }`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <p className="text-xs text-gray-500">{pct.toFixed(0)}% of monthly budget used</p>
+              </div>
+            );
+          })() : (
+            <p className="text-sm text-gray-400 text-center py-2">No budget set for this month</p>
+          )}
         </div>
 
         {/* Budget Status */}
