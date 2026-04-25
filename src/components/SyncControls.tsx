@@ -16,6 +16,7 @@ import {
 import { GoogleSheetsManager } from '@/lib/google-sheets';
 import { DataManager } from '@/lib/data';
 import GoogleSignIn from './GoogleSignIn';
+import SpreadsheetSelector from './SpreadsheetSelector';
 
 interface SyncControlsProps {
   selectedMonth?: string;
@@ -205,51 +206,10 @@ export default function SyncControls({ selectedMonth, onSyncComplete }: SyncCont
     }
   };
 
-  const handleCreateSpreadsheet = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const sheetsManager = GoogleSheetsManager.getInstance();
-      const spreadsheetId = await sheetsManager.createSpreadsheet('Monthly Expenses - ' + new Date().toLocaleDateString());
-      
-      setSuccess(`New spreadsheet created successfully! You can now sync your data.`);
-      console.log('Spreadsheet created with ID:', spreadsheetId);
-      
-      // Enable sync automatically after creating spreadsheet
-      DataManager.setSyncEnabled(true);
-      setIsSyncEnabled(true);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(`Failed to create spreadsheet: ${errorMessage}`);
-      console.error('Create spreadsheet error:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSelectSpreadsheet = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const spreadsheetId = prompt('Enter Google Sheet ID (from the URL: https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit)');
-      if (!spreadsheetId) return;
-      
-      const sheetsManager = GoogleSheetsManager.getInstance();
-      const success = await sheetsManager.selectSpreadsheet(spreadsheetId);
-      
-      if (success) {
-        setSuccess('Spreadsheet selected successfully!');
-      } else {
-        setError('Failed to access the spreadsheet. Make sure it exists and you have edit permissions.');
-      }
-    } catch (err) {
-      setError('Failed to select spreadsheet');
-      console.error('Select spreadsheet error:', err);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSpreadsheetSelected = (spreadsheetId: string) => {
+    DataManager.setSyncEnabled(true);
+    setIsSyncEnabled(true);
+    setSuccess('Spreadsheet connected! Sync is now enabled.');
   };
 
   return (
@@ -330,39 +290,7 @@ export default function SyncControls({ selectedMonth, onSyncComplete }: SyncCont
             )}
 
             {/* Spreadsheet Setup */}
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Google Sheet Setup</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  onClick={handleCreateSpreadsheet}
-                  disabled={isLoading}
-                  className="flex items-center justify-center gap-2 px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Cloud className="w-4 h-4" />
-                  )}
-                  <span className="text-sm">Create New Sheet</span>
-                </button>
-
-                <button
-                  onClick={handleSelectSpreadsheet}
-                  disabled={isLoading}
-                  className="flex items-center justify-center gap-2 px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Upload className="w-4 h-4" />
-                  )}
-                  <span className="text-sm">Use Existing Sheet</span>
-                </button>
-              </div>
-              <p className="text-xs text-gray-500">
-                Create a new spreadsheet or select an existing one to store your expense data.
-              </p>
-            </div>
+            <SpreadsheetSelector onSpreadsheetSelected={handleSpreadsheetSelected} />
 
             {/* Sync Actions */}
             <div className="space-y-3">
