@@ -93,17 +93,14 @@ export default function TransactionForm({ onTransactionAdded, categories, onCate
     setIsSubmitting(true);
 
     try {
-      const newTransaction: Transaction = {
-        id: Date.now().toString(),
+      const newTransaction = await DataManager.addTransaction({
         type,
         amount: parseFloat(amount),
         description,
         category,
         date,
-        createdAt: new Date().toISOString(),
-      };
+      });
 
-      await DataManager.addTransaction(newTransaction);
       onTransactionAdded(newTransaction);
 
       // Reset form
