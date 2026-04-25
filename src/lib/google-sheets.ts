@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import { Transaction, Category, Budget, CreditCard } from '@/types';
+import { Transaction, Category, Budget, CreditCard, SavingsGoal } from '@/types';
 
 // Google Sheets configuration
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
@@ -20,6 +20,7 @@ const BUDGETS_SHEET = 'Budgets';
 const MONTHLY_BUDGETS_SHEET = 'MonthlyBudgets';
 const CREDIT_CARDS_SHEET = 'CreditCards';
 const CARD_EXPENSES_SHEET = 'CardExpenses';
+const SAVINGS_GOALS_SHEET = 'SavingsGoals';
 
 interface TokenResponse {
   access_token?: string;
@@ -561,7 +562,7 @@ export class GoogleSheetsManager {
       const existingSheets = sheets.result.sheets?.map((sheet: any) => sheet.properties.title) || [];
       
       // Create missing sheets
-      const requiredSheets = [TRANSACTIONS_SHEET, CATEGORIES_SHEET, BUDGETS_SHEET, MONTHLY_BUDGETS_SHEET, CREDIT_CARDS_SHEET, CARD_EXPENSES_SHEET];
+      const requiredSheets = [TRANSACTIONS_SHEET, CATEGORIES_SHEET, BUDGETS_SHEET, MONTHLY_BUDGETS_SHEET, CREDIT_CARDS_SHEET, CARD_EXPENSES_SHEET, SAVINGS_GOALS_SHEET];
       for (const sheetName of requiredSheets) {
         if (!existingSheets.includes(sheetName)) {
           await window.gapi.client.sheets.spreadsheets.batchUpdate({
@@ -609,6 +610,8 @@ export class GoogleSheetsManager {
         return ['ID', 'Name', 'Last4', 'CreditLimit', 'BillingDate', 'Paid', 'CreatedAt'];
       case CARD_EXPENSES_SHEET:
         return ['ID', 'CardID', 'Description', 'Amount', 'Date', 'Category'];
+      case SAVINGS_GOALS_SHEET:
+        return ['ID', 'Name', 'TargetAmount', 'CurrentAmount', 'Deadline', 'Color', 'CreatedAt'];
       default:
         return [];
     }
@@ -954,6 +957,51 @@ export class GoogleSheetsManager {
       }));
     } catch (error) {
       console.error('Error loading credit cards:', error);
+      return [];
+    }
+  }
+
+  async saveSavingsGoals(goals: SavingsGoal[]): Promise<void> {
+    await this.ensureAuthenticated();
+    await this.ensureSheetsExist();
+    const spreadsheetId = this.getSpreadsheetId();
+    try {
+      const rows = goals.map(g => [
+        g.id, g.name, g.targetAmount, g.currentAmount, g.deadline ?? '', g.color, g.createdAt,
+      ]);
+      await window.gapi.client.sheets.spreadsheets.values.clear({ spreadsheetId, range: `${SAVINGS_GOALS_SHEET}!A2:G` });
+      if (rows.length > 0) {
+        await window.gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId, range: `${SAVINGS_GOALS_SHEET}!A2`,
+          valueInputOption: 'USER_ENTERED', resource: { values: rows },
+        });
+      }
+    } catch (error) {
+      console.error('Error saving savings goals:', error);
+      throw error;
+    }
+  }
+
+  async loadSavingsGoals(): Promise<SavingsGoal[]> {
+    await this.ensureAuthenticated();
+    await this.ensureSheetsExist();
+    const spreadsheetId = this.getSpreadsheetId();
+    try {
+      const res = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId, range: `${SAVINGS_GOALS_SHEET}!A2:G`,
+      });
+      const rows: string[][] = res.result.values || [];
+      return rows.map(row => ({
+        id: row[0],
+        name: row[1],
+        targetAmount: parseFloat(row[2]) || 0,
+        currentAmount: parseFloat(row[3]) || 0,
+        deadline: row[4] || undefined,
+        color: row[5] || '#8b5cf6',
+        createdAt: row[6] || '',
+      }));
+    } catch (error) {
+      console.error('Error loading savings goals:', error);
       return [];
     }
   }

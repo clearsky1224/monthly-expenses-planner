@@ -252,6 +252,7 @@ Every data entity must follow this pattern in `data.ts`:
 | `MonthlyBudgets` | Month, Amount | Total monthly budget |
 | `CreditCards` | ID, Name, Last4, CreditLimit, BillingDate, Paid, CreatedAt | Credit cards |
 | `CardExpenses` | ID, CardID, Description, Amount, Date, Category | Credit card expenses |
+| `SavingsGoals` | ID, Name, TargetAmount, CurrentAmount, Deadline, Color, CreatedAt | Savings goals |
 
 All sheets are **auto-created** by `ensureSheetsExist()` on first authenticated API call.
 

@@ -481,6 +481,18 @@ export class DataManager {
 
   static async getSavingsGoals(): Promise<SavingsGoal[]> {
     if (typeof window === 'undefined') return [];
+    if (this.isSyncEnabled()) {
+      try {
+        const sheetsManager = GoogleSheetsManager.getInstance();
+        if (sheetsManager.isAuthenticated()) {
+          const goals = await sheetsManager.loadSavingsGoals();
+          localStorage.setItem(STORAGE_KEYS.SAVINGS_GOALS, JSON.stringify(goals));
+          return goals;
+        }
+      } catch (error) {
+        console.error('Failed to load savings goals from Sheets:', error);
+      }
+    }
     const data = localStorage.getItem(STORAGE_KEYS.SAVINGS_GOALS);
     return data ? JSON.parse(data) : [];
   }
@@ -488,6 +500,16 @@ export class DataManager {
   static async saveSavingsGoals(goals: SavingsGoal[]): Promise<void> {
     if (typeof window === 'undefined') return;
     localStorage.setItem(STORAGE_KEYS.SAVINGS_GOALS, JSON.stringify(goals));
+    if (this.isSyncEnabled()) {
+      try {
+        const sheetsManager = GoogleSheetsManager.getInstance();
+        if (sheetsManager.isAuthenticated()) {
+          await sheetsManager.saveSavingsGoals(goals);
+        }
+      } catch (error) {
+        console.error('Failed to save savings goals to Sheets:', error);
+      }
+    }
     emitDataChange();
   }
 
