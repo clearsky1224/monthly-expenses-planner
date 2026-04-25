@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import { Transaction, Category, Budget } from '@/types';
+import { Transaction, Category, Budget, CreditCard } from '@/types';
 
 // Google Sheets configuration
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
@@ -18,6 +18,8 @@ const TRANSACTIONS_SHEET = 'Transactions';
 const CATEGORIES_SHEET = 'Categories';
 const BUDGETS_SHEET = 'Budgets';
 const MONTHLY_BUDGETS_SHEET = 'MonthlyBudgets';
+const CREDIT_CARDS_SHEET = 'CreditCards';
+const CARD_EXPENSES_SHEET = 'CardExpenses';
 
 interface TokenResponse {
   access_token?: string;
@@ -559,7 +561,7 @@ export class GoogleSheetsManager {
       const existingSheets = sheets.result.sheets?.map((sheet: any) => sheet.properties.title) || [];
       
       // Create missing sheets
-      const requiredSheets = [TRANSACTIONS_SHEET, CATEGORIES_SHEET, BUDGETS_SHEET, MONTHLY_BUDGETS_SHEET];
+      const requiredSheets = [TRANSACTIONS_SHEET, CATEGORIES_SHEET, BUDGETS_SHEET, MONTHLY_BUDGETS_SHEET, CREDIT_CARDS_SHEET, CARD_EXPENSES_SHEET];
       for (const sheetName of requiredSheets) {
         if (!existingSheets.includes(sheetName)) {
           await window.gapi.client.sheets.spreadsheets.batchUpdate({
@@ -603,6 +605,10 @@ export class GoogleSheetsManager {
         return ['ID', 'Category', 'Limit', 'Spent', 'Month'];
       case MONTHLY_BUDGETS_SHEET:
         return ['Month', 'Amount'];
+      case CREDIT_CARDS_SHEET:
+        return ['ID', 'Name', 'Last4', 'CreditLimit', 'BillingDate', 'Paid', 'CreatedAt'];
+      case CARD_EXPENSES_SHEET:
+        return ['ID', 'CardID', 'Description', 'Amount', 'Date', 'Category'];
       default:
         return [];
     }
@@ -887,6 +893,68 @@ export class GoogleSheetsManager {
     } catch (error) {
       console.error('Error loading monthly budgets:', error);
       return {};
+    }
+  }
+
+  async saveCreditCards(cards: CreditCard[]): Promise<void> {
+    await this.ensureAuthenticated();
+    await this.ensureSheetsExist();
+    const spreadsheetId = this.getSpreadsheetId();
+    try {
+      const cardRows = cards.map(c => [
+        c.id, c.name, c.last4, c.creditLimit, c.billingDate, c.paid ? 'true' : 'false', c.createdAt,
+      ]);
+      const expenseRows = cards.flatMap(c =>
+        c.expenses.map(e => [e.id, c.id, e.description, e.amount, e.date, e.category])
+      );
+      await window.gapi.client.sheets.spreadsheets.values.clear({ spreadsheetId, range: `${CREDIT_CARDS_SHEET}!A2:G` });
+      await window.gapi.client.sheets.spreadsheets.values.clear({ spreadsheetId, range: `${CARD_EXPENSES_SHEET}!A2:F` });
+      if (cardRows.length > 0) {
+        await window.gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId, range: `${CREDIT_CARDS_SHEET}!A2`,
+          valueInputOption: 'USER_ENTERED', resource: { values: cardRows },
+        });
+      }
+      if (expenseRows.length > 0) {
+        await window.gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId, range: `${CARD_EXPENSES_SHEET}!A2`,
+          valueInputOption: 'USER_ENTERED', resource: { values: expenseRows },
+        });
+      }
+    } catch (error) {
+      console.error('Error saving credit cards:', error);
+      throw error;
+    }
+  }
+
+  async loadCreditCards(): Promise<CreditCard[]> {
+    await this.ensureAuthenticated();
+    await this.ensureSheetsExist();
+    const spreadsheetId = this.getSpreadsheetId();
+    try {
+      const [cardRes, expRes] = await Promise.all([
+        window.gapi.client.sheets.spreadsheets.values.get({ spreadsheetId, range: `${CREDIT_CARDS_SHEET}!A2:G` }),
+        window.gapi.client.sheets.spreadsheets.values.get({ spreadsheetId, range: `${CARD_EXPENSES_SHEET}!A2:F` }),
+      ]);
+      const expenseRows: string[][] = expRes.result.values || [];
+      const expensesByCard: Record<string, any[]> = {};
+      for (const row of expenseRows) {
+        const cardId = row[1];
+        if (!expensesByCard[cardId]) expensesByCard[cardId] = [];
+        expensesByCard[cardId].push({ id: row[0], description: row[2], amount: parseFloat(row[3]) || 0, date: row[4], category: row[5] });
+      }
+      const cardRows: string[][] = cardRes.result.values || [];
+      return cardRows.map(row => ({
+        id: row[0], name: row[1], last4: row[2],
+        creditLimit: parseFloat(row[3]) || 0,
+        billingDate: parseInt(row[4]) || 1,
+        paid: row[5] === 'true',
+        createdAt: row[6] || '',
+        expenses: expensesByCard[row[0]] || [],
+      }));
+    } catch (error) {
+      console.error('Error loading credit cards:', error);
+      return [];
     }
   }
 

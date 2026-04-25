@@ -45,17 +45,17 @@ export default function CreditCards() {
   const [expCategory, setExpCategory] = useState('');
 
   useEffect(() => {
-    setCards(DataManager.getCreditCards());
+    DataManager.getCreditCards().then(setCards);
     DataManager.getCategories().then(cats => {
       setCategories(cats.filter(c => c.type === 'expense').map(c => c.name));
     });
   }, []);
 
-  const refresh = () => setCards(DataManager.getCreditCards());
+  const refresh = async () => setCards(await DataManager.getCreditCards());
 
-  const handleAddCard = () => {
+  const handleAddCard = async () => {
     if (!cardName.trim() || !cardLimit || !cardLast4.trim()) return;
-    DataManager.addCreditCard({
+    await DataManager.addCreditCard({
       name: cardName.trim(),
       last4: cardLast4.trim().slice(-4),
       creditLimit: parseFloat(cardLimit),
@@ -63,12 +63,12 @@ export default function CreditCards() {
     });
     setCardName(''); setCardLast4(''); setCardLimit(''); setCardBillingDate('1'); setCardColorIdx(0);
     setShowAddCard(false);
-    refresh();
+    await refresh();
   };
 
-  const handleAddExpense = (cardId: string) => {
+  const handleAddExpense = async (cardId: string) => {
     if (!expDesc.trim() || !expAmount) return;
-    DataManager.addCreditCardExpense(cardId, {
+    await DataManager.addCreditCardExpense(cardId, {
       description: expDesc.trim(),
       amount: parseFloat(expAmount),
       date: expDate,
@@ -76,7 +76,7 @@ export default function CreditCards() {
     });
     setExpDesc(''); setExpAmount(''); setExpDate(new Date().toISOString().split('T')[0]); setExpCategory('');
     setAddingExpenseFor(null);
-    refresh();
+    await refresh();
   };
 
   const totalUsed = (card: CreditCard) => card.expenses.reduce((s, e) => s + e.amount, 0);
@@ -221,7 +221,7 @@ export default function CreditCards() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => { DataManager.toggleCreditCardPaid(card.id); refresh(); }}
+                    onClick={async () => { await DataManager.toggleCreditCardPaid(card.id); await refresh(); }}
                     className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-colors ${
                       card.paid
                         ? 'bg-white/30 text-white'
@@ -234,7 +234,7 @@ export default function CreditCards() {
                     }
                   </button>
                   <button
-                    onClick={() => { DataManager.deleteCreditCard(card.id); refresh(); }}
+                    onClick={async () => { await DataManager.deleteCreditCard(card.id); await refresh(); }}
                     className="p-1 rounded-full hover:bg-white/20 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -364,7 +364,7 @@ export default function CreditCards() {
                         <div className="flex items-center gap-2 ml-2">
                           <span className="text-sm font-semibold text-gray-900">${exp.amount.toFixed(2)}</span>
                           <button
-                            onClick={() => { DataManager.deleteCreditCardExpense(card.id, exp.id); refresh(); }}
+                            onClick={async () => { await DataManager.deleteCreditCardExpense(card.id, exp.id); await refresh(); }}
                             className="text-gray-300 hover:text-red-500 transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

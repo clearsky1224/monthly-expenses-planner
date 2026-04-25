@@ -391,18 +391,40 @@ export class DataManager {
 
   // ── Credit Cards ──────────────────────────────────────────
 
-  static getCreditCards(): CreditCard[] {
+  static async getCreditCards(): Promise<CreditCard[]> {
     if (typeof window === 'undefined') return [];
+    if (this.isSyncEnabled()) {
+      try {
+        const sheetsManager = GoogleSheetsManager.getInstance();
+        if (sheetsManager.isAuthenticated()) {
+          const cards = await sheetsManager.loadCreditCards();
+          localStorage.setItem(STORAGE_KEYS.CREDIT_CARDS, JSON.stringify(cards));
+          return cards;
+        }
+      } catch (error) {
+        console.error('Failed to load credit cards from Sheets:', error);
+      }
+    }
     const data = localStorage.getItem(STORAGE_KEYS.CREDIT_CARDS);
     return data ? JSON.parse(data) : [];
   }
 
-  static saveCreditCards(cards: CreditCard[]): void {
+  static async saveCreditCards(cards: CreditCard[]): Promise<void> {
     if (typeof window === 'undefined') return;
     localStorage.setItem(STORAGE_KEYS.CREDIT_CARDS, JSON.stringify(cards));
+    if (this.isSyncEnabled()) {
+      try {
+        const sheetsManager = GoogleSheetsManager.getInstance();
+        if (sheetsManager.isAuthenticated()) {
+          await sheetsManager.saveCreditCards(cards);
+        }
+      } catch (error) {
+        console.error('Failed to save credit cards to Sheets:', error);
+      }
+    }
   }
 
-  static addCreditCard(card: Omit<CreditCard, 'id' | 'createdAt' | 'expenses' | 'paid'>): CreditCard {
+  static async addCreditCard(card: Omit<CreditCard, 'id' | 'createdAt' | 'expenses' | 'paid'>): Promise<CreditCard> {
     const newCard: CreditCard = {
       ...card,
       id: crypto.randomUUID(),
@@ -410,34 +432,40 @@ export class DataManager {
       paid: false,
       createdAt: new Date().toISOString(),
     };
-    this.saveCreditCards([...this.getCreditCards(), newCard]);
+    const cards = await this.getCreditCards();
+    await this.saveCreditCards([...cards, newCard]);
     return newCard;
   }
 
-  static updateCreditCard(id: string, updates: Partial<CreditCard>): void {
-    this.saveCreditCards(this.getCreditCards().map(c => c.id === id ? { ...c, ...updates } : c));
+  static async updateCreditCard(id: string, updates: Partial<CreditCard>): Promise<void> {
+    const cards = await this.getCreditCards();
+    await this.saveCreditCards(cards.map((c: CreditCard) => c.id === id ? { ...c, ...updates } : c));
   }
 
-  static deleteCreditCard(id: string): void {
-    this.saveCreditCards(this.getCreditCards().filter(c => c.id !== id));
+  static async deleteCreditCard(id: string): Promise<void> {
+    const cards = await this.getCreditCards();
+    await this.saveCreditCards(cards.filter((c: CreditCard) => c.id !== id));
   }
 
-  static addCreditCardExpense(cardId: string, expense: Omit<CreditCardExpense, 'id'>): void {
-    this.saveCreditCards(this.getCreditCards().map(c => {
+  static async addCreditCardExpense(cardId: string, expense: Omit<CreditCardExpense, 'id'>): Promise<void> {
+    const cards = await this.getCreditCards();
+    await this.saveCreditCards(cards.map((c: CreditCard) => {
       if (c.id !== cardId) return c;
       return { ...c, expenses: [...c.expenses, { ...expense, id: crypto.randomUUID() }] };
     }));
   }
 
-  static deleteCreditCardExpense(cardId: string, expenseId: string): void {
-    this.saveCreditCards(this.getCreditCards().map(c => {
+  static async deleteCreditCardExpense(cardId: string, expenseId: string): Promise<void> {
+    const cards = await this.getCreditCards();
+    await this.saveCreditCards(cards.map((c: CreditCard) => {
       if (c.id !== cardId) return c;
-      return { ...c, expenses: c.expenses.filter(e => e.id !== expenseId) };
+      return { ...c, expenses: c.expenses.filter((e: CreditCardExpense) => e.id !== expenseId) };
     }));
   }
 
-  static toggleCreditCardPaid(cardId: string): void {
-    this.saveCreditCards(this.getCreditCards().map(c =>
+  static async toggleCreditCardPaid(cardId: string): Promise<void> {
+    const cards = await this.getCreditCards();
+    await this.saveCreditCards(cards.map((c: CreditCard) =>
       c.id === cardId ? { ...c, paid: !c.paid } : c
     ));
   }
