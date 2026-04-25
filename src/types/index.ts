@@ -1,6 +1,6 @@
 export interface Transaction {
   id: string;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'savings';
   amount: number;
   description: string;
   category: string;
@@ -11,7 +11,7 @@ export interface Transaction {
 export interface Category {
   id: string;
   name: string;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'savings';
   color: string;
   icon?: string;
 }
@@ -48,6 +48,16 @@ export interface CreditCard {
   billingDate: number;
   expenses: CreditCardExpense[];
   paid: boolean;
+  createdAt: string;
+}
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  deadline?: string;
+  color: string;
   createdAt: string;
 }
 

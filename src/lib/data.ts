@@ -1,4 +1,4 @@
-import { Transaction, Category, Budget, MonthlySummary, CreditCard, CreditCardExpense } from '@/types';
+import { Transaction, Category, Budget, MonthlySummary, CreditCard, CreditCardExpense, SavingsGoal } from '@/types';
 import { GoogleSheetsManager } from './google-sheets';
 import { emitDataChange } from './events';
 
@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
   BUDGETS: 'expenses-planner-budgets',
   CREDIT_CARDS: 'expenses-planner-credit-cards',
   MONTHLY_BUDGETS: 'expenses-planner-monthly-budgets',
+  SAVINGS_GOALS: 'expenses-planner-savings-goals',
   SYNC_ENABLED: 'expenses-planner-sync-enabled',
 } as const;
 
@@ -474,5 +475,53 @@ export class DataManager {
     await this.saveCreditCards(cards.map((c: CreditCard) =>
       c.id === cardId ? { ...c, paid: !c.paid } : c
     ));
+  }
+
+  // ── Savings Goals ─────────────────────────────────────────
+
+  static async getSavingsGoals(): Promise<SavingsGoal[]> {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem(STORAGE_KEYS.SAVINGS_GOALS);
+    return data ? JSON.parse(data) : [];
+  }
+
+  static async saveSavingsGoals(goals: SavingsGoal[]): Promise<void> {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(STORAGE_KEYS.SAVINGS_GOALS, JSON.stringify(goals));
+    emitDataChange();
+  }
+
+  static async addSavingsGoal(goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'currentAmount'>): Promise<SavingsGoal> {
+    const newGoal: SavingsGoal = {
+      ...goal,
+      id: crypto.randomUUID(),
+      currentAmount: 0,
+      createdAt: new Date().toISOString(),
+    };
+    const goals = await this.getSavingsGoals();
+    await this.saveSavingsGoals([...goals, newGoal]);
+    return newGoal;
+  }
+
+  static async updateSavingsGoal(id: string, updates: Partial<SavingsGoal>): Promise<void> {
+    const goals = await this.getSavingsGoals();
+    await this.saveSavingsGoals(goals.map(g => g.id === id ? { ...g, ...updates } : g));
+  }
+
+  static async deleteSavingsGoal(id: string): Promise<void> {
+    const goals = await this.getSavingsGoals();
+    await this.saveSavingsGoals(goals.filter(g => g.id !== id));
+  }
+
+  static async contributeToGoal(goalId: string, amount: number): Promise<void> {
+    const goals = await this.getSavingsGoals();
+    await this.saveSavingsGoals(goals.map(g =>
+      g.id === goalId ? { ...g, currentAmount: g.currentAmount + amount } : g
+    ));
+  }
+
+  static async getSavingsTransactions(): Promise<Transaction[]> {
+    const all = await this.getTransactions();
+    return all.filter(t => t.type === 'savings');
   }
 }

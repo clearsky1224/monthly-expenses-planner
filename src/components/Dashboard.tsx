@@ -15,7 +15,8 @@ import {
   CreditCard,
   Pencil,
   Check,
-  X
+  X,
+  PiggyBank
 } from 'lucide-react';
 import { Transaction, DashboardData, MonthlySummary, Category } from '@/types';
 import { DataManager } from '@/lib/data';
@@ -23,8 +24,9 @@ import { DATA_CHANGE_EVENT } from '@/lib/events';
 import TransactionForm from './TransactionForm';
 import SyncControls from './SyncControls';
 import CreditCards from './CreditCards';
+import Savings from './Savings';
 
-type TabType = 'overview' | 'add' | 'auth' | 'recent' | 'cards';
+type TabType = 'overview' | 'add' | 'savings' | 'cards' | 'recent' | 'auth';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -85,6 +87,7 @@ export default function Dashboard() {
   const tabs = [
     { id: 'overview' as TabType, label: 'Overview', icon: Home },
     { id: 'add' as TabType, label: 'Add', icon: Plus },
+    { id: 'savings' as TabType, label: 'Savings', icon: PiggyBank },
     { id: 'cards' as TabType, label: 'Cards', icon: CreditCard },
     { id: 'recent' as TabType, label: 'Recent', icon: Clock },
     { id: 'auth' as TabType, label: 'Sync', icon: User },
@@ -365,9 +368,9 @@ export default function Dashboard() {
                     </div>
                     <div className="text-right">
                       <p className={`font-semibold text-sm ${
-                        transaction.type === 'income' ? 'text-green-700' : 'text-red-700'
+                        transaction.type === 'income' ? 'text-green-700' : transaction.type === 'savings' ? 'text-violet-600' : 'text-red-700'
                       }`}>
-                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                        {transaction.type === 'income' ? '+' : transaction.type === 'savings' ? '+' : '-'}₱{transaction.amount.toFixed(2)}
                       </p>
                       <p className="text-xs text-gray-600">
                         {format(new Date(transaction.date), 'MMM dd')}
@@ -393,6 +396,8 @@ export default function Dashboard() {
         return renderAuthTab();
       case 'recent':
         return renderRecentTab();
+      case 'savings':
+        return <Savings />;
       case 'cards':
         return (
           <div className="space-y-4">
