@@ -111,7 +111,7 @@ export default function Analytics() {
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
               >
                 <option value="3">Last 3 months</option>
                 <option value="6">Last 6 months</option>
@@ -187,12 +187,12 @@ export default function Analytics() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Monthly Trend */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4">Monthly Trend</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900">Monthly Trend</h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
+                <XAxis dataKey="month" tick={{ fill: '#374151' }} />
+                <YAxis tick={{ fill: '#374151' }} />
                 <Tooltip formatter={(value) => `$${value}`} />
                 <Legend />
                 <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} />
@@ -204,7 +204,7 @@ export default function Analytics() {
 
           {/* Expense Categories */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4">Expense Categories</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900">Expense Categories</h2>
             {expenseCategories.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -215,7 +215,18 @@ export default function Analytics() {
                     cx="50%"
                     cy="50%"
                     outerRadius={80}
-                    label={(props: any) => `${props.category} ${((props.percent || 0) * 100).toFixed(0)}%`}
+                    label={(props: any) => {
+                      const { cx, cy, midAngle, innerRadius, outerRadius, category, percent } = props;
+                      const RADIAN = Math.PI / 180;
+                      const radius = outerRadius + 24;
+                      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                      return (
+                        <text x={x} y={y} fill="#374151" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={12}>
+                          {`${category} ${((percent || 0) * 100).toFixed(0)}%`}
+                        </text>
+                      );
+                    }}
                   >
                     {expenseCategories.map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -235,16 +246,16 @@ export default function Analytics() {
         {/* Category Breakdown */}
         {expenseCategories.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Expense Breakdown</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900">Expense Breakdown</h2>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-2">Category</th>
-                    <th className="text-right py-2">Amount</th>
-                    <th className="text-right py-2">Transactions</th>
-                    <th className="text-right py-2">Average</th>
-                    <th className="text-right py-2">% of Total</th>
+                    <th className="text-left py-2 text-gray-700">Category</th>
+                    <th className="text-right py-2 text-gray-700">Amount</th>
+                    <th className="text-right py-2 text-gray-700">Transactions</th>
+                    <th className="text-right py-2 text-gray-700">Average</th>
+                    <th className="text-right py-2 text-gray-700">% of Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -254,11 +265,11 @@ export default function Analytics() {
                     
                     return (
                       <tr key={index} className="border-b">
-                        <td className="py-2 font-medium">{category.category}</td>
-                        <td className="text-right py-2">${category.amount.toFixed(2)}</td>
-                        <td className="text-right py-2">{category.count}</td>
-                        <td className="text-right py-2">${average.toFixed(2)}</td>
-                        <td className="text-right py-2">{percentage.toFixed(1)}%</td>
+                        <td className="py-2 font-medium text-gray-900">{category.category}</td>
+                        <td className="text-right py-2 text-gray-800">${category.amount.toFixed(2)}</td>
+                        <td className="text-right py-2 text-gray-800">{category.count}</td>
+                        <td className="text-right py-2 text-gray-800">${average.toFixed(2)}</td>
+                        <td className="text-right py-2 text-gray-800">{percentage.toFixed(1)}%</td>
                       </tr>
                     );
                   })}
@@ -271,7 +282,7 @@ export default function Analytics() {
         {/* Income Sources */}
         {incomeCategories.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4">Income Sources</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900">Income Sources</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {incomeCategories.map((source: any, index: number) => {
                 const percentage = (source.amount / currentMonth.income) * 100;
