@@ -25,8 +25,8 @@ A modern, mobile-first expense tracking application built with Next.js 15, React
 - **Vercel** - Hosting and deployment
 
 ### Storage
-- **LocalStorage** - Primary data storage (client-side)
-- **Google Sheets** - Optional cloud backup and sync
+- **Google Sheets** - PRIMARY database and source of truth (when authenticated)
+- **LocalStorage** - Offline cache / fallback when not authenticated
 
 ---
 
@@ -220,21 +220,49 @@ const tabs = [
 ### 3. Data Management
 **Location:** `src/lib/data.ts`
 
-- LocalStorage as primary storage
+- **Google Sheets is the source of truth** — all reads/writes go to Sheets first when sync is enabled and user is authenticated
+- LocalStorage is a cache/offline fallback only
+- All data layers (transactions, categories, budgets, monthly budgets, credit cards) follow the same pattern:
+  1. Write to localStorage immediately
+  2. Write to Google Sheets if authenticated
+  3. On read: fetch from Sheets first, sync to localStorage, fallback to localStorage if offline
 - Transaction CRUD operations
 - Category management
-- Budget tracking
+- Budget tracking (per-category + total monthly budget)
+- Credit card tracking with expenses
 - Monthly summaries
+
+---
+
+## Data Architecture — CRITICAL RULE
+
+> **Google Sheets is the database. localStorage is the cache.**
+
+Every data entity must follow this pattern in `data.ts`:
+- **Reads:** Try Sheets first → cache to localStorage → fallback to localStorage if unauthenticated/offline
+- **Writes:** Write to localStorage immediately → also write to Sheets if authenticated
+- **Never treat localStorage as the source of truth** — it is only a cache for offline access
+
+### Google Sheets — Sheet Inventory
+| Sheet | Columns | Entity |
+|---|---|---|
+| `Transactions` | ID, Type, Amount, Description, Category, Date, CreatedAt | Transactions |
+| `Categories` | ID, Name, Type, Color, Icon | Categories |
+| `Budgets` | ID, Category, Limit, Spent, Month | Per-category budgets |
+| `MonthlyBudgets` | Month, Amount | Total monthly budget |
+| `CreditCards` | ID, Name, Last4, CreditLimit, BillingDate, Paid, CreatedAt | Credit cards |
+| `CardExpenses` | ID, CardID, Description, Amount, Date, Category | Credit card expenses |
+
+All sheets are **auto-created** by `ensureSheetsExist()` on first authenticated API call.
 
 ---
 
 ## Known Limitations
 
-1. **Client-Side Only** - All data stored in browser localStorage
-2. **No Server-Side Rendering** - User data not pre-rendered
-3. **Single User** - No multi-user support (by design)
-4. **Google Sheets Dependency** - Sync requires Google account
-5. **No Offline Sync Queue** - Sync requires active internet connection
+1. **No Server-Side Rendering** - User data not pre-rendered
+2. **Single User** - No multi-user support (by design)
+3. **Google Sheets Required for Persistence** - Without Google auth, data only lives in localStorage (browser cache)
+4. **No Offline Sync Queue** - Changes made offline are not queued; Sheets and localStorage may diverge until next authenticated session
 
 ---
 
@@ -334,4 +362,4 @@ git push origin main
 
 ---
 
-**Last Updated:** April 25, 2026 1:21 AM UTC+08:00
+**Last Updated:** April 25, 2026 1:20 PM UTC+08:00
