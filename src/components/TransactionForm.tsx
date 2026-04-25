@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Plus, DollarSign, Calendar, FileText, Tag, X, Check, ChevronDown } from 'lucide-react';
-import { Transaction, Category } from '@/types';
+import { Plus, DollarSign, Calendar, FileText, Tag, X, Check, ChevronDown, CreditCard } from 'lucide-react';
+import { Transaction, Category, CreditCard as CreditCardType } from '@/types';
 import { DataManager } from '@/lib/data';
 
 interface TransactionFormProps {
@@ -23,6 +23,8 @@ export default function TransactionForm({ onTransactionAdded, categories, onCate
   const [category, setCategory] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedCardId, setSelectedCardId] = useState<string>('');
+  const [availableCards, setAvailableCards] = useState<CreditCardType[]>([]);
 
   const [categorySearch, setCategorySearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -39,6 +41,14 @@ export default function TransactionForm({ onTransactionAdded, categories, onCate
     cat => cat.type === type && cat.name.toLowerCase() === categorySearch.toLowerCase()
   );
   const canAddNew = categorySearch.trim().length > 0 && !exactMatch;
+
+  useEffect(() => {
+    DataManager.getCreditCards().then(setAvailableCards);
+  }, []);
+
+  useEffect(() => {
+    if (type !== 'expense') setSelectedCardId('');
+  }, [type]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -101,6 +111,15 @@ export default function TransactionForm({ onTransactionAdded, categories, onCate
         date,
       });
 
+      if (type === 'expense' && selectedCardId) {
+        await DataManager.addCreditCardExpense(selectedCardId, {
+          description,
+          amount: parseFloat(amount),
+          date,
+          category,
+        });
+      }
+
       onTransactionAdded(newTransaction);
 
       // Reset form
@@ -109,6 +128,7 @@ export default function TransactionForm({ onTransactionAdded, categories, onCate
       setDescription('');
       setCategory('');
       setCategorySearch('');
+      setSelectedCardId('');
       setDate(new Date().toISOString().split('T')[0]);
     } catch (error) {
       console.error('Error adding transaction:', error);
@@ -199,6 +219,32 @@ export default function TransactionForm({ onTransactionAdded, categories, onCate
             </div>
           </div>
         </div>
+
+        {/* Credit Card Selector (expense only) */}
+        {type === 'expense' && availableCards.length > 0 && (
+          <div>
+            <label className="block text-sm font-bold text-gray-800 mb-2">
+              <span className="flex items-center gap-1.5"><CreditCard className="w-4 h-4 text-indigo-500" /> Charge to Card <span className="text-xs font-normal text-gray-500">(optional)</span></span>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {availableCards.map(card => (
+                <button
+                  key={card.id}
+                  type="button"
+                  onClick={() => setSelectedCardId(selectedCardId === card.id ? '' : card.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${
+                    selectedCardId === card.id
+                      ? 'bg-indigo-500 border-indigo-500 text-white shadow-sm'
+                      : 'bg-white border-gray-300 text-gray-700 hover:border-indigo-400'
+                  }`}
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  {card.name} ···{card.last4}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Category and Date Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
