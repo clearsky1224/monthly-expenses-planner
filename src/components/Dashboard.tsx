@@ -41,7 +41,7 @@ export default function Dashboard() {
 
   const loadData = async () => {
     try {
-      const budget = DataManager.getMonthlyBudget(selectedMonth);
+      const budget = await DataManager.getMonthlyBudget(selectedMonth);
       setMonthlyBudget(budget);
       const allTransactions = await DataManager.getTransactions();
       const currentMonth = await DataManager.getMonthlySummary(selectedMonth);
@@ -178,13 +178,13 @@ export default function Dashboard() {
                 autoFocus
               />
               <button
-                onClick={() => {
+                onClick={async () => {
                   const val = parseFloat(budgetInput);
                   if (!isNaN(val) && val > 0) {
-                    DataManager.setMonthlyBudget(selectedMonth, val);
+                    await DataManager.setMonthlyBudget(selectedMonth, val);
                     setMonthlyBudget(val);
                   } else if (budgetInput === '' && monthlyBudget) {
-                    DataManager.removeMonthlyBudget(selectedMonth);
+                    await DataManager.removeMonthlyBudget(selectedMonth);
                     setMonthlyBudget(null);
                   }
                   setEditingBudget(false);

@@ -17,6 +17,7 @@ const APP_SHEET_PREFIX = '[ExpenseTracker]';
 const TRANSACTIONS_SHEET = 'Transactions';
 const CATEGORIES_SHEET = 'Categories';
 const BUDGETS_SHEET = 'Budgets';
+const MONTHLY_BUDGETS_SHEET = 'MonthlyBudgets';
 
 interface TokenResponse {
   access_token?: string;
@@ -558,7 +559,7 @@ export class GoogleSheetsManager {
       const existingSheets = sheets.result.sheets?.map((sheet: any) => sheet.properties.title) || [];
       
       // Create missing sheets
-      const requiredSheets = [TRANSACTIONS_SHEET, CATEGORIES_SHEET, BUDGETS_SHEET];
+      const requiredSheets = [TRANSACTIONS_SHEET, CATEGORIES_SHEET, BUDGETS_SHEET, MONTHLY_BUDGETS_SHEET];
       for (const sheetName of requiredSheets) {
         if (!existingSheets.includes(sheetName)) {
           await window.gapi.client.sheets.spreadsheets.batchUpdate({
@@ -600,6 +601,8 @@ export class GoogleSheetsManager {
         return ['ID', 'Name', 'Type', 'Color', 'Icon'];
       case BUDGETS_SHEET:
         return ['ID', 'Category', 'Limit', 'Spent', 'Month'];
+      case MONTHLY_BUDGETS_SHEET:
+        return ['Month', 'Amount'];
       default:
         return [];
     }
@@ -800,6 +803,90 @@ export class GoogleSheetsManager {
     } catch (error) {
       console.error('Error loading budgets:', error);
       return [];
+    }
+  }
+
+  async saveMonthlyBudget(month: string, amount: number): Promise<void> {
+    await this.ensureAuthenticated();
+    await this.ensureSheetsExist();
+    const spreadsheetId = this.getSpreadsheetId();
+    try {
+      const response = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${MONTHLY_BUDGETS_SHEET}!A2:B`,
+      });
+      const rows: string[][] = response.result.values || [];
+      const existingIdx = rows.findIndex((r: string[]) => r[0] === month);
+      const allRows = [...rows];
+      if (existingIdx >= 0) {
+        allRows[existingIdx] = [month, amount.toString()];
+      } else {
+        allRows.push([month, amount.toString()]);
+      }
+      await window.gapi.client.sheets.spreadsheets.values.clear({
+        spreadsheetId,
+        range: `${MONTHLY_BUDGETS_SHEET}!A2:B`,
+      });
+      if (allRows.length > 0) {
+        await window.gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `${MONTHLY_BUDGETS_SHEET}!A2`,
+          valueInputOption: 'USER_ENTERED',
+          resource: { values: allRows },
+        });
+      }
+    } catch (error) {
+      console.error('Error saving monthly budget:', error);
+      throw error;
+    }
+  }
+
+  async removeMonthlyBudget(month: string): Promise<void> {
+    await this.ensureAuthenticated();
+    await this.ensureSheetsExist();
+    const spreadsheetId = this.getSpreadsheetId();
+    try {
+      const response = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${MONTHLY_BUDGETS_SHEET}!A2:B`,
+      });
+      const rows: string[][] = (response.result.values || []).filter((r: string[]) => r[0] !== month);
+      await window.gapi.client.sheets.spreadsheets.values.clear({
+        spreadsheetId,
+        range: `${MONTHLY_BUDGETS_SHEET}!A2:B`,
+      });
+      if (rows.length > 0) {
+        await window.gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId,
+          range: `${MONTHLY_BUDGETS_SHEET}!A2`,
+          valueInputOption: 'USER_ENTERED',
+          resource: { values: rows },
+        });
+      }
+    } catch (error) {
+      console.error('Error removing monthly budget:', error);
+      throw error;
+    }
+  }
+
+  async loadMonthlyBudgets(): Promise<Record<string, number>> {
+    await this.ensureAuthenticated();
+    await this.ensureSheetsExist();
+    const spreadsheetId = this.getSpreadsheetId();
+    try {
+      const response = await window.gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${MONTHLY_BUDGETS_SHEET}!A2:B`,
+      });
+      const rows: string[][] = response.result.values || [];
+      const map: Record<string, number> = {};
+      for (const row of rows) {
+        if (row[0] && row[1]) map[row[0]] = parseFloat(row[1]);
+      }
+      return map;
+    } catch (error) {
+      console.error('Error loading monthly budgets:', error);
+      return {};
     }
   }
 

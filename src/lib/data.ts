@@ -333,27 +333,60 @@ export class DataManager {
 
   // ── Monthly Total Budget ──────────────────────────────────
 
-  static getMonthlyBudget(month: string): number | null {
+  static async getMonthlyBudget(month: string): Promise<number | null> {
     if (typeof window === 'undefined') return null;
+    if (this.isSyncEnabled()) {
+      try {
+        const sheetsManager = GoogleSheetsManager.getInstance();
+        if (sheetsManager.isAuthenticated()) {
+          const map = await sheetsManager.loadMonthlyBudgets();
+          // Sync back to localStorage
+          localStorage.setItem(STORAGE_KEYS.MONTHLY_BUDGETS, JSON.stringify(map));
+          return map[month] ?? null;
+        }
+      } catch (error) {
+        console.error('Failed to load monthly budgets from Sheets:', error);
+      }
+    }
     const data = localStorage.getItem(STORAGE_KEYS.MONTHLY_BUDGETS);
     const map: Record<string, number> = data ? JSON.parse(data) : {};
     return map[month] ?? null;
   }
 
-  static setMonthlyBudget(month: string, amount: number): void {
+  static async setMonthlyBudget(month: string, amount: number): Promise<void> {
     if (typeof window === 'undefined') return;
     const data = localStorage.getItem(STORAGE_KEYS.MONTHLY_BUDGETS);
     const map: Record<string, number> = data ? JSON.parse(data) : {};
     map[month] = amount;
     localStorage.setItem(STORAGE_KEYS.MONTHLY_BUDGETS, JSON.stringify(map));
+    if (this.isSyncEnabled()) {
+      try {
+        const sheetsManager = GoogleSheetsManager.getInstance();
+        if (sheetsManager.isAuthenticated()) {
+          await sheetsManager.saveMonthlyBudget(month, amount);
+        }
+      } catch (error) {
+        console.error('Failed to save monthly budget to Sheets:', error);
+      }
+    }
   }
 
-  static removeMonthlyBudget(month: string): void {
+  static async removeMonthlyBudget(month: string): Promise<void> {
     if (typeof window === 'undefined') return;
     const data = localStorage.getItem(STORAGE_KEYS.MONTHLY_BUDGETS);
     const map: Record<string, number> = data ? JSON.parse(data) : {};
     delete map[month];
     localStorage.setItem(STORAGE_KEYS.MONTHLY_BUDGETS, JSON.stringify(map));
+    if (this.isSyncEnabled()) {
+      try {
+        const sheetsManager = GoogleSheetsManager.getInstance();
+        if (sheetsManager.isAuthenticated()) {
+          await sheetsManager.removeMonthlyBudget(month);
+        }
+      } catch (error) {
+        console.error('Failed to remove monthly budget from Sheets:', error);
+      }
+    }
   }
 
   // ── Credit Cards ──────────────────────────────────────────
