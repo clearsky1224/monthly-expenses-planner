@@ -5,6 +5,7 @@ import { Transaction, Category, Budget } from '@/types';
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || '';
 const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
+const DRIVE_DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
 
 // User-specific spreadsheet storage key
 const USER_SPREADSHEET_KEY = 'user_spreadsheet_id';
@@ -70,7 +71,7 @@ export class GoogleSheetsManager {
             try {
               await window.gapi.client.init({
                 apiKey: API_KEY,
-                discoveryDocs: [DISCOVERY_DOC],
+                discoveryDocs: [DISCOVERY_DOC, DRIVE_DISCOVERY_DOC],
               });
               this.gapiInited = true;
               resolve();
@@ -108,7 +109,7 @@ export class GoogleSheetsManager {
         try {
           this.tokenClient = window.google.accounts.oauth2.initTokenClient({
             client_id: CLIENT_ID,
-            scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
+            scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.metadata.readonly',
             callback: (tokenResponse: TokenResponse) => {
               if (tokenResponse && tokenResponse.access_token) {
                 this.tokenObject = tokenResponse;
