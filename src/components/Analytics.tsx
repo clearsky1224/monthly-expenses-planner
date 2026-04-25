@@ -104,7 +104,7 @@ export default function Analytics() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Analytics</h1>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Analytics</h1>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-gray-600">
               <Calendar className="w-4 h-4" />
@@ -126,13 +126,13 @@ export default function Analytics() {
           {/* Current Month Income */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Income</h3>
+              <h3 className="text-xs font-medium text-gray-600">Income</h3>
               <TrendingUp className="w-4 h-4 text-green-500" />
             </div>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-lg font-bold text-green-600">
               ${currentMonth.income.toFixed(2)}
             </p>
-            <p className={`text-sm mt-1 ${
+            <p className={`text-xs mt-1 ${
               incomeTrend >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
               {incomeTrend >= 0 ? '+' : ''}{incomeTrend.toFixed(1)}% from last month
@@ -142,13 +142,13 @@ export default function Analytics() {
           {/* Current Month Expenses */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Expenses</h3>
+              <h3 className="text-xs font-medium text-gray-600">Expenses</h3>
               <TrendingDown className="w-4 h-4 text-red-500" />
             </div>
-            <p className="text-2xl font-bold text-red-600">
+            <p className="text-lg font-bold text-red-600">
               ${currentMonth.expenses.toFixed(2)}
             </p>
-            <p className={`text-sm mt-1 ${
+            <p className={`text-xs mt-1 ${
               expenseTrend >= 0 ? 'text-red-600' : 'text-green-600'
             }`}>
               {expenseTrend >= 0 ? '+' : ''}{expenseTrend.toFixed(1)}% from last month
@@ -158,36 +158,36 @@ export default function Analytics() {
           {/* Current Month Balance */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Balance</h3>
+              <h3 className="text-xs font-medium text-gray-600">Balance</h3>
               <DollarSign className="w-4 h-4 text-blue-500" />
             </div>
-            <p className={`text-2xl font-bold ${
+            <p className={`text-lg font-bold ${
               currentMonth.balance >= 0 ? 'text-blue-600' : 'text-red-600'
             }`}>
               ${currentMonth.balance.toFixed(2)}
             </p>
-            <p className="text-sm text-gray-500 mt-1">Net for this month</p>
+            <p className="text-xs text-gray-500 mt-1">Net for this month</p>
           </div>
 
           {/* Savings Rate */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Savings Rate</h3>
+              <h3 className="text-xs font-medium text-gray-600">Savings Rate</h3>
               <TrendingUp className="w-4 h-4 text-purple-500" />
             </div>
-            <p className="text-2xl font-bold text-purple-600">
+            <p className="text-lg font-bold text-purple-600">
               {currentMonth.income > 0 
                 ? ((currentMonth.balance / currentMonth.income) * 100).toFixed(1)
                 : '0.0'}%
             </p>
-            <p className="text-sm text-gray-500 mt-1">Of income saved</p>
+            <p className="text-xs text-gray-500 mt-1">Of income saved</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Monthly Trend */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900">Monthly Trend</h2>
+            <h2 className="text-base font-semibold mb-4 text-gray-900">Monthly Trend</h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -204,7 +204,7 @@ export default function Analytics() {
 
           {/* Expense Categories */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900">Expense Categories</h2>
+            <h2 className="text-base font-semibold mb-4 text-gray-900">Expense Categories</h2>
             {expenseCategories.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -246,16 +246,16 @@ export default function Analytics() {
         {/* Category Breakdown */}
         {expenseCategories.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900">Expense Breakdown</h2>
+            <h2 className="text-base font-semibold mb-4 text-gray-900">Expense Breakdown</h2>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-2 text-gray-700">Category</th>
-                    <th className="text-right py-2 text-gray-700">Amount</th>
-                    <th className="text-right py-2 text-gray-700">Transactions</th>
-                    <th className="text-right py-2 text-gray-700">Average</th>
-                    <th className="text-right py-2 text-gray-700">% of Total</th>
+                    <th className="text-left py-2 text-gray-700 text-xs">Category</th>
+                    <th className="text-right py-2 text-gray-700 text-xs">Amount</th>
+                    <th className="text-right py-2 text-gray-700 text-xs">Transactions</th>
+                    <th className="text-right py-2 text-gray-700 text-xs">Average</th>
+                    <th className="text-right py-2 text-gray-700 text-xs">% of Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -265,11 +265,11 @@ export default function Analytics() {
                     
                     return (
                       <tr key={index} className="border-b">
-                        <td className="py-2 font-medium text-gray-900">{category.category}</td>
-                        <td className="text-right py-2 text-gray-800">${category.amount.toFixed(2)}</td>
-                        <td className="text-right py-2 text-gray-800">{category.count}</td>
-                        <td className="text-right py-2 text-gray-800">${average.toFixed(2)}</td>
-                        <td className="text-right py-2 text-gray-800">{percentage.toFixed(1)}%</td>
+                        <td className="py-2 font-medium text-gray-900 text-xs">{category.category}</td>
+                        <td className="text-right py-2 text-gray-800 text-xs">${category.amount.toFixed(2)}</td>
+                        <td className="text-right py-2 text-gray-800 text-xs">{category.count}</td>
+                        <td className="text-right py-2 text-gray-800 text-xs">${average.toFixed(2)}</td>
+                        <td className="text-right py-2 text-gray-800 text-xs">{percentage.toFixed(1)}%</td>
                       </tr>
                     );
                   })}
@@ -282,7 +282,7 @@ export default function Analytics() {
         {/* Income Sources */}
         {incomeCategories.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900">Income Sources</h2>
+            <h2 className="text-base font-semibold mb-4 text-gray-900">Income Sources</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {incomeCategories.map((source: any, index: number) => {
                 const percentage = (source.amount / currentMonth.income) * 100;
@@ -290,7 +290,7 @@ export default function Analytics() {
                 return (
                   <div key={index} className="p-4 bg-green-50 rounded-lg">
                     <h3 className="font-medium text-green-900">{source.category}</h3>
-                    <p className="text-lg font-semibold text-green-600">
+                    <p className="text-sm font-semibold text-green-600">
                       ${source.amount.toFixed(2)}
                     </p>
                     <p className="text-sm text-green-700">
