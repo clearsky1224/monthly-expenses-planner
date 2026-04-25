@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Plus, DollarSign, Calendar, FileText, Tag, X, Check, ChevronDown, CreditCard } from 'lucide-react';
+import { Plus, DollarSign, FileText, Tag, X, Check, ChevronDown, CreditCard } from 'lucide-react';
 import { Transaction, Category, CreditCard as CreditCardType } from '@/types';
 import { DataManager } from '@/lib/data';
 
@@ -378,9 +378,6 @@ export default function TransactionForm({ onTransactionAdded, categories, onCate
                 className="px-4 py-3 w-full bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium shadow-sm transition-all duration-200"
                 required
               />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <Calendar className="w-5 h-5 text-gray-500" />
-              </div>
             </div>
           </div>
         </div>
