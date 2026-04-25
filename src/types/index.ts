@@ -32,6 +32,25 @@ export interface MonthlySummary {
   transactionCount: number;
 }
 
+export interface CreditCardExpense {
+  id: string;
+  description: string;
+  amount: number;
+  date: string;
+  category: string;
+}
+
+export interface CreditCard {
+  id: string;
+  name: string;
+  last4: string;
+  creditLimit: number;
+  billingDate: number;
+  expenses: CreditCardExpense[];
+  paid: boolean;
+  createdAt: string;
+}
+
 export interface DashboardData {
   currentMonth: MonthlySummary;
   recentTransactions: Transaction[];

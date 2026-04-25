@@ -11,14 +11,16 @@ import {
   ArrowDownRight,
   Wallet,
   Target,
-  Activity
+  Activity,
+  CreditCard
 } from 'lucide-react';
 import { Transaction, DashboardData, MonthlySummary, Category } from '@/types';
 import { DataManager } from '@/lib/data';
 import TransactionForm from './TransactionForm';
 import SyncControls from './SyncControls';
+import CreditCards from './CreditCards';
 
-type TabType = 'overview' | 'add' | 'auth' | 'recent';
+type TabType = 'overview' | 'add' | 'auth' | 'recent' | 'cards';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -64,8 +66,9 @@ export default function Dashboard() {
   const tabs = [
     { id: 'overview' as TabType, label: 'Overview', icon: Home },
     { id: 'add' as TabType, label: 'Add', icon: Plus },
-    { id: 'auth' as TabType, label: 'Sync', icon: User },
+    { id: 'cards' as TabType, label: 'Cards', icon: CreditCard },
     { id: 'recent' as TabType, label: 'Recent', icon: Clock },
+    { id: 'auth' as TabType, label: 'Sync', icon: User },
   ];
 
   const renderOverviewTab = () => {
@@ -291,6 +294,12 @@ export default function Dashboard() {
         return renderAuthTab();
       case 'recent':
         return renderRecentTab();
+      case 'cards':
+        return (
+          <div className="space-y-4">
+            <CreditCards />
+          </div>
+        );
       default:
         return renderOverviewTab();
     }

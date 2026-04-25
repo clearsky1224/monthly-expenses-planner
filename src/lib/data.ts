@@ -1,10 +1,11 @@
-import { Transaction, Category, Budget, MonthlySummary } from '@/types';
+import { Transaction, Category, Budget, MonthlySummary, CreditCard, CreditCardExpense } from '@/types';
 import { GoogleSheetsManager } from './google-sheets';
 
 const STORAGE_KEYS = {
   TRANSACTIONS: 'expenses-planner-transactions',
   CATEGORIES: 'expenses-planner-categories',
   BUDGETS: 'expenses-planner-budgets',
+  CREDIT_CARDS: 'expenses-planner-credit-cards',
   SYNC_ENABLED: 'expenses-planner-sync-enabled',
 } as const;
 
@@ -327,5 +328,58 @@ export class DataManager {
       console.error('Failed to sync from Google Sheets:', error);
       throw error;
     }
+  }
+
+  // ── Credit Cards ──────────────────────────────────────────
+
+  static getCreditCards(): CreditCard[] {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem(STORAGE_KEYS.CREDIT_CARDS);
+    return data ? JSON.parse(data) : [];
+  }
+
+  static saveCreditCards(cards: CreditCard[]): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(STORAGE_KEYS.CREDIT_CARDS, JSON.stringify(cards));
+  }
+
+  static addCreditCard(card: Omit<CreditCard, 'id' | 'createdAt' | 'expenses' | 'paid'>): CreditCard {
+    const newCard: CreditCard = {
+      ...card,
+      id: crypto.randomUUID(),
+      expenses: [],
+      paid: false,
+      createdAt: new Date().toISOString(),
+    };
+    this.saveCreditCards([...this.getCreditCards(), newCard]);
+    return newCard;
+  }
+
+  static updateCreditCard(id: string, updates: Partial<CreditCard>): void {
+    this.saveCreditCards(this.getCreditCards().map(c => c.id === id ? { ...c, ...updates } : c));
+  }
+
+  static deleteCreditCard(id: string): void {
+    this.saveCreditCards(this.getCreditCards().filter(c => c.id !== id));
+  }
+
+  static addCreditCardExpense(cardId: string, expense: Omit<CreditCardExpense, 'id'>): void {
+    this.saveCreditCards(this.getCreditCards().map(c => {
+      if (c.id !== cardId) return c;
+      return { ...c, expenses: [...c.expenses, { ...expense, id: crypto.randomUUID() }] };
+    }));
+  }
+
+  static deleteCreditCardExpense(cardId: string, expenseId: string): void {
+    this.saveCreditCards(this.getCreditCards().map(c => {
+      if (c.id !== cardId) return c;
+      return { ...c, expenses: c.expenses.filter(e => e.id !== expenseId) };
+    }));
+  }
+
+  static toggleCreditCardPaid(cardId: string): void {
+    this.saveCreditCards(this.getCreditCards().map(c =>
+      c.id === cardId ? { ...c, paid: !c.paid } : c
+    ));
   }
 }
