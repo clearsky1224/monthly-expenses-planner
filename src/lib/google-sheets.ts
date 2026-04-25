@@ -37,6 +37,7 @@ export class GoogleSheetsManager {
   private tokenObject: TokenResponse | null = null;
   private userProfile: UserProfile | null = null;
   private authCallbacks: Array<(success: boolean, error?: string) => void> = [];
+  private tokenRefreshTimer: NodeJS.Timeout | null = null;
 
   static getInstance(): GoogleSheetsManager {
     if (!GoogleSheetsManager.instance) {
@@ -155,6 +156,9 @@ export class GoogleSheetsManager {
             };
             localStorage.setItem('google_sheets_token', JSON.stringify(tokenData));
             
+            // Set up automatic token refresh
+            this.scheduleTokenRefresh(tokenResponse.expires_in || 3600);
+            
             // Fetch user profile information
             await this.fetchUserProfile();
             
@@ -228,6 +232,12 @@ export class GoogleSheetsManager {
 
   async signOut(): Promise<void> {
     try {
+      // Clear token refresh timer
+      if (this.tokenRefreshTimer) {
+        clearTimeout(this.tokenRefreshTimer);
+        this.tokenRefreshTimer = null;
+      }
+      
       // Get access token before clearing the object
       const accessToken = this.tokenObject?.access_token;
       
@@ -334,13 +344,16 @@ export class GoogleSheetsManager {
             // Validate the token is actually still valid
             const isValid = await this.validateToken();
             if (!isValid) {
-              // Token is invalid, clear it
-              localStorage.removeItem('google_sheets_token');
-              this.tokenObject = null;
+              // Token is invalid, try to refresh it silently
+              await this.refreshTokenSilently();
+            } else {
+              // Token is valid, schedule next refresh
+              const remainingTime = expiresIn - ageInSeconds;
+              this.scheduleTokenRefresh(remainingTime);
             }
           } else {
-            // Token expired, clear it
-            localStorage.removeItem('google_sheets_token');
+            // Token expired, try to refresh it silently
+            await this.refreshTokenSilently();
           }
         } catch (error) {
           localStorage.removeItem('google_sheets_token');
@@ -792,6 +805,84 @@ export class GoogleSheetsManager {
     } catch (error) {
       console.error('Error loading budgets:', error);
       return [];
+    }
+  }
+
+  /**
+   * Schedule automatic token refresh before expiration
+   */
+  private scheduleTokenRefresh(expiresInSeconds: number): void {
+    // Clear any existing timer
+    if (this.tokenRefreshTimer) {
+      clearTimeout(this.tokenRefreshTimer);
+    }
+
+    // Refresh token 5 minutes before expiration (or halfway through if less than 10 minutes)
+    const refreshBuffer = Math.min(300, expiresInSeconds / 2);
+    const refreshIn = (expiresInSeconds - refreshBuffer) * 1000;
+
+    console.log(`Token will auto-refresh in ${Math.floor(refreshIn / 1000 / 60)} minutes`);
+
+    this.tokenRefreshTimer = setTimeout(async () => {
+      console.log('Auto-refreshing token...');
+      await this.refreshTokenSilently();
+    }, refreshIn);
+  }
+
+  /**
+   * Silently refresh the access token without user interaction
+   */
+  private async refreshTokenSilently(): Promise<void> {
+    try {
+      if (!this.tokenClient || !this.gisInited) {
+        console.log('Token client not initialized, skipping silent refresh');
+        return;
+      }
+
+      // Request a new token silently (this will use the existing Google session)
+      return new Promise((resolve, reject) => {
+        const originalCallback = this.tokenClient.callback;
+
+        this.tokenClient.callback = async (tokenResponse: TokenResponse) => {
+          try {
+            if (tokenResponse && tokenResponse.access_token) {
+              this.tokenObject = tokenResponse;
+
+              // Store new token
+              const tokenData = {
+                ...tokenResponse,
+                stored_at: Date.now()
+              };
+              localStorage.setItem('google_sheets_token', JSON.stringify(tokenData));
+
+              // Schedule next refresh
+              this.scheduleTokenRefresh(tokenResponse.expires_in || 3600);
+
+              console.log('Token refreshed successfully');
+              resolve();
+            } else {
+              console.log('Silent refresh failed, user may need to re-authenticate');
+              reject(new Error('Failed to refresh token'));
+            }
+          } catch (error) {
+            reject(error);
+          } finally {
+            this.tokenClient.callback = originalCallback;
+          }
+        };
+
+        // Request token with prompt: 'none' for silent refresh
+        try {
+          this.tokenClient.requestAccessToken({ prompt: '' });
+        } catch (error) {
+          console.log('Silent refresh not possible, user will need to sign in again');
+          this.tokenClient.callback = originalCallback;
+          reject(error);
+        }
+      });
+    } catch (error) {
+      console.error('Error during silent token refresh:', error);
+      // Don't throw - just log the error and let the user re-authenticate when needed
     }
   }
 }
