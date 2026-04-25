@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   CreditCard as CreditCardIcon,
   Plus,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { CreditCard, CreditCardExpense } from '@/types';
 import { DataManager } from '@/lib/data';
+import { DATA_CHANGE_EVENT } from '@/lib/events';
 
 const CARD_COLORS = [
   'from-blue-500 to-indigo-600',
@@ -44,14 +45,20 @@ export default function CreditCards() {
   const [expDate, setExpDate] = useState(new Date().toISOString().split('T')[0]);
   const [expCategory, setExpCategory] = useState('');
 
-  useEffect(() => {
-    DataManager.getCreditCards().then(setCards);
-    DataManager.getCategories().then(cats => {
-      setCategories(cats.filter(c => c.type === 'expense').map(c => c.name));
-    });
+  const refresh = useCallback(async () => {
+    const [cards, cats] = await Promise.all([
+      DataManager.getCreditCards(),
+      DataManager.getCategories(),
+    ]);
+    setCards(cards);
+    setCategories(cats.filter(c => c.type === 'expense').map(c => c.name));
   }, []);
 
-  const refresh = async () => setCards(await DataManager.getCreditCards());
+  useEffect(() => {
+    refresh();
+    window.addEventListener(DATA_CHANGE_EVENT, refresh);
+    return () => window.removeEventListener(DATA_CHANGE_EVENT, refresh);
+  }, [refresh]);
 
   const handleAddCard = async () => {
     if (!cardName.trim() || !cardLimit || !cardLast4.trim()) return;

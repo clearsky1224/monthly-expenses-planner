@@ -1,5 +1,6 @@
 import { Transaction, Category, Budget, MonthlySummary, CreditCard, CreditCardExpense } from '@/types';
 import { GoogleSheetsManager } from './google-sheets';
+import { emitDataChange } from './events';
 
 const STORAGE_KEYS = {
   TRANSACTIONS: 'expenses-planner-transactions',
@@ -82,6 +83,7 @@ export class DataManager {
         console.error('Failed to save to Google Sheets:', error);
       }
     }
+    emitDataChange();
   }
 
   static async addTransaction(transaction: Omit<Transaction, 'id' | 'createdAt'>): Promise<Transaction> {
@@ -144,6 +146,7 @@ export class DataManager {
         console.error('Failed to save categories to Google Sheets:', error);
       }
     }
+    emitDataChange();
   }
 
   static async addCategory(category: Omit<Category, 'id'>): Promise<Category> {
@@ -369,6 +372,7 @@ export class DataManager {
         console.error('Failed to save monthly budget to Sheets:', error);
       }
     }
+    emitDataChange();
   }
 
   static async removeMonthlyBudget(month: string): Promise<void> {
@@ -387,6 +391,7 @@ export class DataManager {
         console.error('Failed to remove monthly budget from Sheets:', error);
       }
     }
+    emitDataChange();
   }
 
   // ── Credit Cards ──────────────────────────────────────────
@@ -422,6 +427,7 @@ export class DataManager {
         console.error('Failed to save credit cards to Sheets:', error);
       }
     }
+    emitDataChange();
   }
 
   static async addCreditCard(card: Omit<CreditCard, 'id' | 'createdAt' | 'expenses' | 'paid'>): Promise<CreditCard> {

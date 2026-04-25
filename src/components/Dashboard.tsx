@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Transaction, DashboardData, MonthlySummary, Category } from '@/types';
 import { DataManager } from '@/lib/data';
+import { DATA_CHANGE_EVENT } from '@/lib/events';
 import TransactionForm from './TransactionForm';
 import SyncControls from './SyncControls';
 import CreditCards from './CreditCards';
@@ -37,6 +38,16 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadData();
+
+    const interval = setInterval(loadData, 30000);
+
+    const onDataChange = () => loadData();
+    window.addEventListener(DATA_CHANGE_EVENT, onDataChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener(DATA_CHANGE_EVENT, onDataChange);
+    };
   }, [selectedMonth]);
 
   const loadData = async () => {
