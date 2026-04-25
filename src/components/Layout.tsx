@@ -10,8 +10,6 @@ import {
   BarChart3, 
   Menu, 
   X, 
-  Moon, 
-  Sun,
   DollarSign,
   Tag
 } from 'lucide-react';
@@ -22,7 +20,6 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const pathname = usePathname();
 
   const navigation = [
@@ -33,17 +30,8 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   ];
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    if (!isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
-
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 ${isDarkMode ? 'dark' : ''}`}>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
@@ -110,18 +98,6 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </nav>
 
-        {/* Dark Mode Toggle */}
-        <div className="absolute bottom-6 left-4 right-4">
-          <button
-            onClick={toggleDarkMode}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-slate-100 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300 rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-600/50 active:bg-slate-300 dark:active:bg-slate-500/50 transition-all duration-200 border border-slate-200/50 dark:border-slate-600/50"
-          >
-            {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            <span className="font-medium text-sm">
-              {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-            </span>
-          </button>
-        </div>
       </div>
 
       {/* Main Content */}
@@ -143,12 +119,7 @@ export default function Layout({ children }: LayoutProps) {
                 Expense Tracker
               </h1>
             </div>
-            <button
-              onClick={toggleDarkMode}
-              className="p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 active:bg-slate-200 dark:active:bg-slate-600/50 transition-all duration-200"
-            >
-              {isDarkMode ? <Sun className="w-4 h-4 text-slate-600 dark:text-slate-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
-            </button>
+            <div />
           </div>
         </div>
 
