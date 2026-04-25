@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, DollarSign, Calendar, FileText, Tag, X, Check } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Plus, DollarSign, Calendar, FileText, Tag, X, Check, ChevronDown } from 'lucide-react';
 import { Transaction, Category } from '@/types';
 import { DataManager } from '@/lib/data';
 
@@ -24,39 +24,58 @@ export default function TransactionForm({ onTransactionAdded, categories, onCate
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [showNewCategory, setShowNewCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
+  const [categorySearch, setCategorySearch] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
   const [newCategoryColor, setNewCategoryColor] = useState('#ef4444');
   const [isSavingCategory, setIsSavingCategory] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const categoryRef = useRef<HTMLDivElement>(null);
 
-  const filteredCategories = categories.filter(cat => cat.type === type);
+  const filteredCategories = categories
+    .filter(cat => cat.type === type)
+    .filter(cat => cat.name.toLowerCase().includes(categorySearch.toLowerCase()));
 
-  const handleCategoryChange = (value: string) => {
-    if (value === '__add_new__') {
-      setShowNewCategory(true);
-      setCategory('');
-    } else {
-      setCategory(value);
-    }
+  const exactMatch = categories.some(
+    cat => cat.type === type && cat.name.toLowerCase() === categorySearch.toLowerCase()
+  );
+  const canAddNew = categorySearch.trim().length > 0 && !exactMatch;
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+        setShowColorPicker(false);
+        // If nothing selected, clear search
+        if (!category) setCategorySearch('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [category]);
+
+  const handleSelectCategory = (name: string) => {
+    setCategory(name);
+    setCategorySearch(name);
+    setShowDropdown(false);
+    setShowColorPicker(false);
   };
 
   const handleSaveNewCategory = async () => {
-    if (!newCategoryName.trim()) return;
+    if (!categorySearch.trim()) return;
     setIsSavingCategory(true);
     try {
       const newCat: Category = {
         id: Date.now().toString(),
-        name: newCategoryName.trim(),
+        name: categorySearch.trim(),
         type,
         color: newCategoryColor,
       };
       const allCategories = await DataManager.getCategories();
       await DataManager.saveCategories([...allCategories, newCat]);
       if (onCategoryAdded) onCategoryAdded(newCat);
-      setCategory(newCat.name);
-      setNewCategoryName('');
+      handleSelectCategory(newCat.name);
       setNewCategoryColor('#ef4444');
-      setShowNewCategory(false);
+      setShowColorPicker(false);
     } catch (error) {
       console.error('Error saving category:', error);
     } finally {
@@ -92,6 +111,7 @@ export default function TransactionForm({ onTransactionAdded, categories, onCate
       setAmount('');
       setDescription('');
       setCategory('');
+      setCategorySearch('');
       setDate(new Date().toISOString().split('T')[0]);
     } catch (error) {
       console.error('Error adding transaction:', error);
@@ -185,72 +205,121 @@ export default function TransactionForm({ onTransactionAdded, categories, onCate
 
         {/* Category and Date Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          {/* Category */}
-          <div>
+          {/* Category - Searchable Combobox */}
+          <div ref={categoryRef}>
             <label className="block text-sm font-bold text-gray-800 mb-2">
               Category
             </label>
-            {!showNewCategory ? (
-              <select
-                value={category}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="px-4 py-3 w-full bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium shadow-sm transition-all duration-200 cursor-pointer"
-                required={!showNewCategory}
-              >
-                <option value="">Select category</option>
-                {filteredCategories.map((cat) => (
-                  <option key={cat.id} value={cat.name}>{cat.name}</option>
-                ))}
-                <option value="__add_new__">+ Add new category...</option>
-              </select>
-            ) : (
-              <div className="border border-blue-300 rounded-xl p-3 bg-blue-50 space-y-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <Tag className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-semibold text-blue-700">New {type} category</span>
-                </div>
+            <div className="relative">
+              {/* Search Input */}
+              <div className="relative">
                 <input
                   type="text"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  placeholder="Category name"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  autoFocus
+                  value={categorySearch}
+                  onChange={(e) => {
+                    setCategorySearch(e.target.value);
+                    setCategory('');
+                    setShowDropdown(true);
+                    setShowColorPicker(false);
+                  }}
+                  onFocus={() => setShowDropdown(true)}
+                  placeholder="Search or type a category..."
+                  className="px-4 py-3 w-full bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium shadow-sm transition-all duration-200 pr-10"
+                  required
+                  autoComplete="off"
                 />
-                <div className="flex gap-1.5 flex-wrap">
-                  {CATEGORY_COLORS.map(color => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setNewCategoryColor(color)}
-                      className={`w-6 h-6 rounded-full transition-transform ${
-                        newCategoryColor === color ? 'ring-2 ring-offset-1 ring-gray-600 scale-110' : ''
-                      }`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <div className="flex gap-2">
+                {category ? (
                   <button
                     type="button"
-                    onClick={handleSaveNewCategory}
-                    disabled={isSavingCategory || !newCategoryName.trim()}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => { setCategory(''); setCategorySearch(''); setShowDropdown(true); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    <Check className="w-3.5 h-3.5" />
-                    {isSavingCategory ? 'Saving...' : 'Save'}
+                    <X className="w-4 h-4" />
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => { setShowNewCategory(false); setNewCategoryName(''); }}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                    Cancel
-                  </button>
-                </div>
+                ) : (
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                )}
               </div>
-            )}
+
+              {/* Dropdown */}
+              {showDropdown && (
+                <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
+                  {filteredCategories.length > 0 && (
+                    <ul>
+                      {filteredCategories.map(cat => (
+                        <li key={cat.id}>
+                          <button
+                            type="button"
+                            onClick={() => handleSelectCategory(cat.name)}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-gray-50 transition-colors"
+                          >
+                            <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                            <span className="text-gray-900 text-sm font-medium">{cat.name}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {/* Add new option */}
+                  {canAddNew && (
+                    <div className="border-t border-gray-100">
+                      {!showColorPicker ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowColorPicker(true)}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-blue-50 transition-colors text-blue-600"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span className="text-sm font-medium">Add "{categorySearch.trim()}"</span>
+                        </button>
+                      ) : (
+                        <div className="p-3 space-y-2">
+                          <p className="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                            <Tag className="w-3 h-3" /> Pick a color for "{categorySearch.trim()}"
+                          </p>
+                          <div className="flex gap-1.5 flex-wrap">
+                            {CATEGORY_COLORS.map(color => (
+                              <button
+                                key={color}
+                                type="button"
+                                onClick={() => setNewCategoryColor(color)}
+                                className={`w-6 h-6 rounded-full transition-transform ${
+                                  newCategoryColor === color ? 'ring-2 ring-offset-1 ring-gray-500 scale-110' : ''
+                                }`}
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={handleSaveNewCategory}
+                              disabled={isSavingCategory}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                            >
+                              <Check className="w-3 h-3" />
+                              {isSavingCategory ? 'Saving...' : 'Save category'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowColorPicker(false)}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-600 text-xs rounded-lg hover:bg-gray-200"
+                            >
+                              <X className="w-3 h-3" /> Back
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {filteredCategories.length === 0 && !canAddNew && (
+                    <p className="px-4 py-3 text-sm text-gray-500">No categories found</p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Date */}
